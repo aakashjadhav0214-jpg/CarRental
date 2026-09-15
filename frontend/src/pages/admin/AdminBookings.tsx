@@ -106,21 +106,32 @@ export const AdminBookings = () => {
                         </span>
                       </td>
 
-                      {/* 1-Click Direct Contact Actions */}
-                      <td className="px-6 py-4 text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <a 
-                            href={`tel:${phoneNum}`}
-                            className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1 shadow-sm transition-all"
-                            title={`Call ${b.user?.name || 'Customer'}`}
-                          >
-                            <Phone size={13} /> Call
-                          </a>
+                      {/* Direct Customer Phone & WhatsApp */}
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col gap-1.5">
+                          <div className="flex items-center gap-2 bg-slate-900/90 px-3 py-1.5 rounded-lg border border-slate-700/80 w-fit">
+                            <Phone size={13} className="text-emerald-400 shrink-0" />
+                            <span className="font-mono text-xs font-extrabold text-white tracking-wide select-all">
+                              {phoneNum}
+                            </span>
+                            <button 
+                              type="button"
+                              onClick={() => {
+                                navigator.clipboard.writeText(cleanPhone);
+                                alert(`Copied ${cleanPhone} to clipboard!`);
+                              }}
+                              className="text-[10px] text-slate-400 hover:text-emerald-300 font-bold ml-1 uppercase"
+                              title="Copy phone number"
+                            >
+                              Copy
+                            </button>
+                          </div>
+
                           <a 
                             href={`https://wa.me/${cleanPhone.length === 10 ? '91' + cleanPhone : cleanPhone}?text=Hello%20${encodeURIComponent(b.user?.name || '')}%2C%20this%20is%20Shri%20Krishna%20Car%20%26%20Bike%20Rentals%20regarding%20booking%20%23${encodeURIComponent(b.booking_number || b.id.substring(0,8))}.`}
                             target="_blank"
                             rel="noreferrer"
-                            className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-emerald-500/30 text-xs font-bold flex items-center gap-1 transition-all"
+                            className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all w-fit shadow-xs"
                             title={`WhatsApp ${b.user?.name || 'Customer'}`}
                           >
                             <MessageSquare size={13} /> WhatsApp
