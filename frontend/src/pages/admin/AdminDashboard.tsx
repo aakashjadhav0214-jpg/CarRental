@@ -6,7 +6,7 @@ import api from '../../api/axios';
 
 export const AdminDashboard = () => {
   const navigate = useNavigate();
-  const [stats, setStats] = useState({ vehicles: 0, bookings: 0, activeUsers: 0, revenueMTD: 0 });
+  const [stats, setStats] = useState({ vehicles: 0, bookings: 0, pendingCount: 0, activeUsers: 0, revenueMTD: 0 });
   const [revenueData, setRevenueData] = useState<any[]>([]);
   const [recentBookings, setRecentBookings] = useState<any[]>([]);
 
@@ -21,10 +21,14 @@ export const AdminDashboard = () => {
         const vehiclesData = vRes.data;
         const bookingsData = bRes.data;
         
-        // 1. Calculate Active Users (Unique User IDs who made a booking)
-        const uniqueUsers = new Set(bookingsData.map((b: any) => b.user_id));
+        // 1. Filter Confirmed vs Pending Bookings
+        const confirmedBookings = bookingsData.filter((b: any) => ['CONFIRMED', 'ACTIVE', 'COMPLETED'].includes(b.booking_status));
+        const pendingBookings = bookingsData.filter((b: any) => b.booking_status === 'PENDING');
+
+        // 2. Calculate Active Users (Unique Customers with confirmed bookings)
+        const uniqueUsers = new Set(confirmedBookings.map((b: any) => b.user_id));
         
-        // 2. Calculate Revenue MTD (Month to Date)
+        // 3. Calculate Revenue MTD (Month to Date)
         const currentMonth = new Date().getMonth();
         const currentYear = new Date().getFullYear();
         
@@ -39,7 +43,8 @@ export const AdminDashboard = () => {
         
         setStats({ 
           vehicles: vehiclesData.length, 
-          bookings: bookingsData.length,
+          bookings: confirmedBookings.length,
+          pendingCount: pendingBookings.length,
           activeUsers: uniqueUsers.size,
           revenueMTD: mtd
         });
@@ -108,8 +113,15 @@ export const AdminDashboard = () => {
             <CalendarCheck size={24} />
           </div>
           <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Total Bookings</p>
-            <h3 className="text-2xl font-extrabold text-white">{stats.bookings}</h3>
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Confirmed Bookings</p>
+            <div className="flex items-baseline gap-2 mt-0.5">
+              <h3 className="text-2xl font-extrabold text-white">{stats.bookings}</h3>
+              {stats.pendingCount > 0 && (
+                <span className="text-[10px] font-extrabold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded-md">
+                  {stats.pendingCount} Pending
+                </span>
+              )}
+            </div>
           </div>
         </div>
         
