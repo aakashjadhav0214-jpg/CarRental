@@ -28,7 +28,7 @@ export const AdminPayments = () => {
     fetchLedger();
   }, []);
 
-  const validPayments = payments.filter(p => p.booking_status !== 'CANCELLED');
+  const validPayments = payments.filter(p => p.payment_status === 'PAID' && p.booking_status !== 'CANCELLED');
   const totalRevenue = validPayments.reduce((acc, curr) => acc + curr.total_amount, 0);
 
   const [uploadingQr, setUploadingQr] = useState(false);

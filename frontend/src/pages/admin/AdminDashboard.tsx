@@ -31,8 +31,8 @@ export const AdminDashboard = () => {
         let mtd = 0;
         bookingsData.forEach((b: any) => {
           const bDate = new Date(b.created_at);
-          // Count revenue for valid bookings (not cancelled)
-          if (bDate.getMonth() === currentMonth && bDate.getFullYear() === currentYear && b.booking_status !== 'CANCELLED') {
+          // Count revenue ONLY for confirmed paid bookings
+          if (bDate.getMonth() === currentMonth && bDate.getFullYear() === currentYear && b.payment_status === 'PAID' && b.booking_status !== 'CANCELLED') {
             mtd += b.total_amount;
           }
         });
@@ -44,7 +44,7 @@ export const AdminDashboard = () => {
           revenueMTD: mtd
         });
         
-        // 3. Prepare Revenue Trend Data (Group by Month)
+        // 3. Prepare Revenue Trend Data (Group by Month for paid bookings)
         const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         const monthlyRevenue: Record<string, number> = {};
         
@@ -56,7 +56,7 @@ export const AdminDashboard = () => {
         }
         
         bookingsData.forEach((b: any) => {
-          if (b.booking_status !== 'CANCELLED') {
+          if (b.payment_status === 'PAID' && b.booking_status !== 'CANCELLED') {
             const bDate = new Date(b.created_at);
             const mName = monthNames[bDate.getMonth()];
             if (monthlyRevenue[mName] !== undefined) {
