@@ -108,15 +108,15 @@ def create_booking(
     duration = calculate_duration_hours(pickup_dt, return_dt)
     pricing = calculate_pricing(duration, vehicle.daily_price, vehicle.hourly_price, vehicle.security_deposit)
     
-    # Generate sequential numeric booking number starting from 1001
+    # Generate sequential 4-digit numeric booking number starting from 0001
     existing_bookings = db.query(Booking.booking_number).all()
-    max_seq = 1000
+    max_seq = 0
     for (b_num,) in existing_bookings:
         if b_num and b_num.isdigit():
             val = int(b_num)
             if val > max_seq:
                 max_seq = val
-    booking_number = str(max_seq + 1)
+    booking_number = f"{max_seq + 1:04d}"
     
     db_booking = Booking(
         booking_number=booking_number,
