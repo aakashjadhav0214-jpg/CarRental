@@ -1,5 +1,6 @@
 import uuid
 import math
+import random
 from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -107,8 +108,12 @@ def create_booking(
     duration = calculate_duration_hours(pickup_dt, return_dt)
     pricing = calculate_pricing(duration, vehicle.daily_price, vehicle.hourly_price, vehicle.security_deposit)
     
-    # Generate unique booking number
-    booking_number = f"VR-{datetime.now().strftime('%Y%m')}-{str(uuid.uuid4())[:6].upper()}"
+    # Generate unique 8-digit numeric booking number
+    while True:
+        numeric_code = str(random.randint(10000000, 99999999))
+        if not db.query(Booking).filter(Booking.booking_number == numeric_code).first():
+            booking_number = numeric_code
+            break
     
     db_booking = Booking(
         booking_number=booking_number,
