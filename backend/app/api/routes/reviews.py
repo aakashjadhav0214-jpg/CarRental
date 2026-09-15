@@ -3,13 +3,12 @@ from sqlalchemy.orm import Session
 from typing import List
 import uuid
 
-from ...database import get_db
 from ...models.review import Review
 from ...models.booking import Booking
 from ...models.vehicle import Vehicle
 from ...models.user import User
 from ...schemas.review import ReviewCreate, ReviewOut
-from ..deps import get_current_user, get_current_admin
+from ..deps import get_db, get_current_user, get_current_admin_user
 
 router = APIRouter(prefix="/reviews", tags=["Reviews & Feedback"])
 
@@ -60,7 +59,7 @@ def create_review(
         booking_id=db_review.booking_id,
         rating=db_review.rating,
         comment=db_review.comment,
-        user_name=current_user.full_name or "Verified Customer",
+        user_name=current_user.name or "Verified Customer",
         vehicle_name=f"{vehicle.make} {vehicle.model}" if vehicle else "Vehicle",
         created_at=db_review.created_at
     )
@@ -81,7 +80,7 @@ def get_my_reviews(
             booking_id=r.booking_id,
             rating=r.rating,
             comment=r.comment,
-            user_name=current_user.full_name or "Verified Customer",
+            user_name=current_user.name or "Verified Customer",
             vehicle_name=f"{vehicle.make} {vehicle.model}" if vehicle else "Vehicle",
             created_at=r.created_at
         ))
@@ -103,7 +102,7 @@ def get_public_reviews(
             booking_id=r.booking_id,
             rating=r.rating,
             comment=r.comment,
-            user_name=u.full_name if u else "Satisfied Rider",
+            user_name=u.name if u else "Satisfied Rider",
             vehicle_name=f"{v.make} {v.model}" if v else "Rental Ride",
             created_at=r.created_at
         ))
@@ -111,7 +110,7 @@ def get_public_reviews(
 
 @router.get("/admin/all", response_model=List[ReviewOut])
 def get_all_reviews_admin(
-    admin: User = Depends(get_current_admin),
+    admin: User = Depends(get_current_admin_user),
     db: Session = Depends(get_db)
 ):
     reviews = db.query(Review).order_by(Review.created_at.desc()).all()
@@ -126,7 +125,7 @@ def get_all_reviews_admin(
             booking_id=r.booking_id,
             rating=r.rating,
             comment=r.comment,
-            user_name=u.full_name if u else "Customer",
+            user_name=u.name if u else "Customer",
             vehicle_name=f"{v.make} {v.model}" if v else "Vehicle",
             created_at=r.created_at
         ))
