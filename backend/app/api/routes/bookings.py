@@ -108,12 +108,15 @@ def create_booking(
     duration = calculate_duration_hours(pickup_dt, return_dt)
     pricing = calculate_pricing(duration, vehicle.daily_price, vehicle.hourly_price, vehicle.security_deposit)
     
-    # Generate unique 8-digit numeric booking number
-    while True:
-        numeric_code = str(random.randint(10000000, 99999999))
-        if not db.query(Booking).filter(Booking.booking_number == numeric_code).first():
-            booking_number = numeric_code
-            break
+    # Generate sequential numeric booking number starting from 1001
+    existing_bookings = db.query(Booking.booking_number).all()
+    max_seq = 1000
+    for (b_num,) in existing_bookings:
+        if b_num and b_num.isdigit():
+            val = int(b_num)
+            if val > max_seq:
+                max_seq = val
+    booking_number = str(max_seq + 1)
     
     db_booking = Booking(
         booking_number=booking_number,
