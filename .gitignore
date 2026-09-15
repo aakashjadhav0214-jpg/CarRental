@@ -1,0 +1,50 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+.venv/
+backend/.venv/
+env/
+venv/
+
+# Environment variables & secrets (CRITICAL FOR PRODUCTION)
+.env
+*.env
+backend/.env
+frontend/.env
+.env.local
+.env.*.local
+
+# Databases & local uploads
+*.db
+*.sqlite
+*.sqlite3
+backend/rental.db
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Python
+__pycache__/
+backend/**/__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# Production builds
+dist/
+frontend/dist/
+build/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+scratch/
+ridex/

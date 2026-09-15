@@ -1,0 +1,96 @@
+from datetime import timedelta
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy.orm import Session
+from .. import deps
+from ...models.user import User
+from ...schemas.user import UserCreate, UserResponse, Token
+from ...core.security import get_password_hash, verify_password, create_access_token
+from ...config import settings
+
+router = APIRouter()
+
+@router.post("/register", response_model=UserResponse)
+def register(user_in: UserCreate, db: Session = Depends(deps.get_db)):
+    # Check if user email exists
+    user_by_email = db.query(User).filter(User.email == user_in.email).first()
+    if user_by_email:
+        raise HTTPException(
+            status_code=400,
+            detail="A user with this email already exists."
+        )
+        
+    # Check if user phone exists
+    if user_in.phone:
+        user_by_phone = db.query(User).filter(User.phone == user_in.phone).first()
+        if user_by_phone:
+            raise HTTPException(
+                status_code=400,
+                detail="This phone number is already registered to another account."
+            )
+    
+    # Create new user, force role to USER (no admin registration via API)
+    new_user = User(
+        name=user_in.name,
+        email=user_in.email,
+        phone=user_in.phone,
+        password_hash=get_password_hash(user_in.password),
+        role="USER"
+    )
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return new_user
+
+@router.post("/login", response_model=Token)
+def login(db: Session = Depends(deps.get_db), form_data: OAuth2PasswordRequestForm = Depends()):
+    user = db.query(User).filter(User.email == form_data.username).first()
+    if not user or not verify_password(form_data.password, user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user.email, "role": user.role}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@router.get("/me", response_model=UserResponse)
+def read_users_me(current_user: User = Depends(deps.get_current_user)):
+    return current_user
+
+import uuid
+from ...schemas.user import ForgotPasswordRequest, ResetPasswordRequest
+
+@router.post("/forgot-password")
+def forgot_password(req: ForgotPasswordRequest, db: Session = Depends(deps.get_db)):
+    user = db.query(User).filter(User.email == req.email).first()
+    if not user:
+        raise HTTPException(
+            status_code=404, 
+            detail="No registered user account found with this email. Please check your email or Register."
+        )
+    
+    token = str(uuid.uuid4())
+    user.reset_token = token
+    db.commit()
+    
+    return {
+        "message": "Password reset token generated successfully.",
+        "demo_token": token
+    }
+
+@router.post("/reset-password")
+def reset_password(req: ResetPasswordRequest, db: Session = Depends(deps.get_db)):
+    user = db.query(User).filter(User.reset_token == req.token).first()
+    if not user:
+        raise HTTPException(status_code=400, detail="Invalid or expired token")
+        
+    user.password_hash = get_password_hash(req.new_password)
+    user.reset_token = None
+    db.commit()
+    
+    return {"message": "Password successfully reset"}
