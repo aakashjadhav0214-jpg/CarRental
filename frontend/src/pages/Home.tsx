@@ -4,7 +4,7 @@ import {
   Car, Bike, 
   MapPin, Calendar, Clock, ArrowRight, ShieldCheck, 
   CheckCircle2, Users, Fuel, Gauge, Phone, ChevronDown, 
-  FileText, Tag, Award, HelpCircle
+  FileText, Tag, Award, HelpCircle, Star
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../api/axios';
@@ -44,6 +44,7 @@ export const Home = () => {
   // Live Fleet state
   const [featuredVehicles, setFeaturedVehicles] = useState<any[]>([]);
   const [isLoadingVehicles, setIsLoadingVehicles] = useState(true);
+  const [publicReviews, setPublicReviews] = useState<any[]>([]);
 
   // FAQ Accordion State
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
@@ -61,7 +62,16 @@ export const Home = () => {
         setIsLoadingVehicles(false);
       }
     };
+    const fetchReviews = async () => {
+      try {
+        const res = await api.get('/reviews/public');
+        setPublicReviews(res.data);
+      } catch (err) {
+        console.error('Failed to fetch reviews', err);
+      }
+    };
     fetchVehicles();
+    fetchReviews();
   }, []);
 
   const handleSearch = (e: React.FormEvent) => {
@@ -620,6 +630,61 @@ export const Home = () => {
         </div>
       </section>
 
+      {/* ========================================================================= */}
+      {/* 5.5 CUSTOMER REVIEWS & FEEDBACK                                           */}
+      {/* ========================================================================= */}
+      <section className="py-16 sm:py-20 bg-slate-900 text-white border-t border-slate-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <span className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider text-amber-300 bg-amber-500/20 border border-amber-500/30">
+              <Star size={14} fill="currentColor" /> Verified Customer Feedback
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-black mt-3 text-white">
+              Rider Experiences &amp; Reviews
+            </h2>
+            <p className="text-sm text-slate-300 mt-2 font-medium">
+              Genuine feedback from customers who rented self-drive cars and bikes from our Hassan branch.
+            </p>
+          </div>
+
+          {publicReviews.length === 0 ? (
+            <div className="text-center py-8 text-slate-400 text-xs font-medium">
+              No reviews submitted yet. Be the first to share your rental experience!
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {publicReviews.map((r) => (
+                <div key={r.id} className="bg-slate-800/80 border border-slate-700/80 p-6 rounded-2xl flex flex-col justify-between shadow-lg backdrop-blur-xs hover:border-amber-500/40 transition-all">
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex gap-1 text-amber-400">
+                        {[...Array(r.rating)].map((_, i) => (
+                          <Star key={i} size={15} fill="currentColor" />
+                        ))}
+                      </div>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                        Verified Ride
+                      </span>
+                    </div>
+                    <p className="text-xs sm:text-sm text-slate-200 leading-relaxed italic">
+                      "{r.comment}"
+                    </p>
+                  </div>
+                  <div className="mt-6 pt-4 border-t border-slate-700/60 flex items-center justify-between text-xs">
+                    <div>
+                      <b className="text-white block font-extrabold">{r.user_name}</b>
+                      <span className="text-emerald-400 font-semibold text-[11px]">{r.vehicle_name}</span>
+                    </div>
+                    <span className="text-[10px] text-slate-400 font-medium">
+                      {r.created_at ? new Date(r.created_at).toLocaleDateString() : 'Recent'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
 
       {/* ========================================================================= */}
       {/* 6. FREQUENTLY ASKED QUESTIONS (TransRentals FAQ Accordion)                 */}

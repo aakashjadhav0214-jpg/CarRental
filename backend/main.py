@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.routes import auth, admin_vehicles, vehicles, bookings, admin_bookings, payments, office
+from app.api.routes import auth, admin_vehicles, vehicles, bookings, admin_bookings, payments, office, reviews
 from app.database import engine, Base, SessionLocal
 from app.models.user import User
 from app.core.security import get_password_hash
@@ -53,6 +53,7 @@ app.include_router(bookings.router, prefix="/api/bookings", tags=["bookings"])
 app.include_router(admin_bookings.router, prefix="/api/admin/bookings", tags=["admin_bookings"])
 app.include_router(payments.router, prefix="/api/payments", tags=["payments"])
 app.include_router(office.router, prefix="/api/office", tags=["office"])
+app.include_router(reviews.router, prefix="/api", tags=["reviews"])
 
 @app.get("/")
 def read_root():

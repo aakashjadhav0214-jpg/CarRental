@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Calendar, MapPin, CreditCard, Share2, Clock, AlertCircle, X } from 'lucide-react';
+import { Calendar, MapPin, CreditCard, Share2, Clock, AlertCircle, X, Star } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 
@@ -14,9 +14,58 @@ export const CustomerDashboard = () => {
   const [extending, setExtending] = useState(false);
   const [extendError, setExtendError] = useState('');
 
+  // Review & Feedback Modal State
+  const [reviewModalBooking, setReviewModalBooking] = useState<any | null>(null);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [myReviews, setMyReviews] = useState<Record<string, any>>({});
+
   useEffect(() => {
     fetchBookings();
+    fetchMyReviews();
   }, []);
+
+  const fetchMyReviews = async () => {
+    try {
+      const res = await api.get('/reviews/my-reviews');
+      const map: Record<string, any> = {};
+      res.data.forEach((r: any) => {
+        if (r.booking_id) map[r.booking_id] = r;
+      });
+      setMyReviews(map);
+    } catch (err) {
+      console.error('Failed to fetch reviews', err);
+    }
+  };
+
+  const openReviewModal = (booking: any) => {
+    setReviewModalBooking(booking);
+    setReviewRating(5);
+    setReviewComment('');
+  };
+
+  const handleCreateReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reviewModalBooking) return;
+    setSubmittingReview(true);
+    try {
+      const res = await api.post('/reviews', {
+        booking_id: reviewModalBooking.id,
+        vehicle_id: reviewModalBooking.vehicle_id,
+        rating: reviewRating,
+        comment: reviewComment
+      });
+      setMyReviews(prev => ({ ...prev, [reviewModalBooking.id]: res.data }));
+      alert('Thank you for your feedback! Your review has been submitted.');
+      setReviewModalBooking(null);
+    } catch (err: any) {
+      console.error(err);
+      alert(err.response?.data?.detail || 'Failed to submit review.');
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
 
   const fetchBookings = async () => {
     try {
@@ -256,6 +305,26 @@ export const CustomerDashboard = () => {
                       </button>
                     )}
 
+                    {/* Feedback / Review Button */}
+                    {myReviews[booking.id] ? (
+                      <div className="py-2 px-3 rounded-xl bg-amber-50 border border-amber-200 text-center">
+                        <div className="flex justify-center gap-0.5 text-amber-500 mb-0.5">
+                          {[...Array(myReviews[booking.id].rating)].map((_, i) => (
+                            <Star key={i} size={12} fill="currentColor" />
+                          ))}
+                        </div>
+                        <span className="text-[10px] font-extrabold text-amber-900 uppercase tracking-wide">Feedback Submitted</span>
+                      </div>
+                    ) : (
+                      <button 
+                        type="button"
+                        onClick={() => openReviewModal(booking)}
+                        className="w-full py-2.5 px-3.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all"
+                      >
+                        <Star size={15} fill="currentColor" /> Rate &amp; Give Feedback
+                      </button>
+                    )}
+
                     {booking.payment_status === 'PENDING' && booking.booking_status !== 'CANCELLED' && (
                       <button 
                         className="w-full py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs shadow-xs transition-all" 
@@ -350,6 +419,89 @@ export const CustomerDashboard = () => {
                   className="w-1/2 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-600/20 transition-all flex items-center justify-center gap-1"
                 >
                   {extending ? 'Updating...' : 'Confirm Extension'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Review & Feedback Modal */}
+      {reviewModalBooking && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl space-y-6 relative border border-slate-200">
+            <button 
+              onClick={() => setReviewModalBooking(null)}
+              className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1"
+            >
+              <X size={20} />
+            </button>
+
+            <div>
+              <span className="text-xs font-black uppercase tracking-wider text-amber-700 bg-amber-50 px-2.5 py-1 rounded border border-amber-200">
+                Customer Feedback
+              </span>
+              <h3 className="text-xl font-extrabold text-slate-900 mt-2">
+                Rate Your Experience #{reviewModalBooking.booking_number}
+              </h3>
+              <p className="text-xs text-slate-500 mt-1">
+                How was your ride experience with Shri Krishna Rentals? Your feedback helps us maintain top quality vehicles.
+              </p>
+            </div>
+
+            <form onSubmit={handleCreateReview} className="space-y-4">
+              {/* Star Rating Picker */}
+              <div>
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-600 block mb-2">
+                  Select Rating
+                </label>
+                <div className="flex gap-2">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setReviewRating(star)}
+                      className={`p-2 rounded-xl border transition-all ${
+                        star <= reviewRating 
+                          ? 'bg-amber-50 border-amber-400 text-amber-500 scale-105' 
+                          : 'bg-slate-50 border-slate-200 text-slate-300'
+                      }`}
+                    >
+                      <Star size={24} fill={star <= reviewRating ? 'currentColor' : 'none'} />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Comment Textarea */}
+              <div>
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-600 block mb-1.5">
+                  Your Feedback / Review Comments
+                </label>
+                <textarea 
+                  rows={4}
+                  value={reviewComment}
+                  onChange={(e) => setReviewComment(e.target.value)}
+                  placeholder="Share details about vehicle condition, pickup experience, and drive comfort..."
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-medium text-sm bg-white outline-none focus:border-amber-500 text-slate-900"
+                  required
+                />
+              </div>
+
+              <div className="pt-2 flex gap-3">
+                <button 
+                  type="button"
+                  onClick={() => setReviewModalBooking(null)}
+                  className="w-1/2 py-3 rounded-xl border border-slate-300 font-bold text-xs text-slate-700 hover:bg-slate-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  disabled={submittingReview}
+                  className="w-1/2 py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs shadow-md shadow-amber-500/20 transition-all flex items-center justify-center gap-1"
+                >
+                  {submittingReview ? 'Submitting...' : 'Submit Feedback'}
                 </button>
               </div>
             </form>
