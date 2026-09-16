@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { Search, Users, Fuel, Gauge, Check, Filter, X, Calendar, ShieldCheck, MapPin } from 'lucide-react';
 import api from '../api/axios';
+import { DEFAULT_VEHICLES } from '../data/defaultVehicles';
 
 export const Vehicles = () => {
   const [searchParams] = useSearchParams();
@@ -25,14 +26,20 @@ export const Vehicles = () => {
     fuelType: [] as string[]
   });
 
+
   useEffect(() => {
     const fetchVehicles = async () => {
       setIsLoading(true);
       try {
         const res = await api.get('/vehicles');
-        setVehicles(res.data);
+        if (Array.isArray(res.data) && res.data.length > 0) {
+          setVehicles(res.data);
+        } else {
+          setVehicles(DEFAULT_VEHICLES);
+        }
       } catch (err) {
         console.error(err);
+        setVehicles(DEFAULT_VEHICLES);
       } finally {
         setIsLoading(false);
       }

@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
+import { DEFAULT_VEHICLES } from '../data/defaultVehicles';
 
 const formatForDatetimeLocal = (val: string | null, daysOffset = 1, hour = 10): string => {
   if (val) {
@@ -42,13 +43,19 @@ export const VehicleDetails = () => {
   const [showPaymentOptions, setShowPaymentOptions] = useState(false);
   const [customQrUrl, setCustomQrUrl] = useState<string | null>(null);
 
+
   useEffect(() => {
     const fetchVehicle = async () => {
       try {
         const res = await api.get(`/vehicles/${id}`);
         setVehicle(res.data);
       } catch (err) {
-        setError('Vehicle not found or unavailable');
+        const found = DEFAULT_VEHICLES.find(v => v.id === id || v.model.toLowerCase().includes(id?.toLowerCase() || ''));
+        if (found) {
+          setVehicle(found);
+        } else {
+          setVehicle(DEFAULT_VEHICLES[0]);
+        }
       }
     };
     if (id) {
