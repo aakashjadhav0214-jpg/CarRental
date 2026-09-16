@@ -42,10 +42,64 @@ def register(user_in: UserCreate, db: Session = Depends(deps.get_db)):
     db.refresh(new_user)
     return new_user
 
+from fastapi import Request
+
 @router.post("/login", response_model=Token)
-def login(db: Session = Depends(deps.get_db), form_data: OAuth2PasswordRequestForm = Depends()):
-    user = db.query(User).filter(User.email == form_data.username).first()
-    if not user or not verify_password(form_data.password, user.password_hash):
+async def login(
+    request: Request,
+    db: Session = Depends(deps.get_db)
+):
+    email = None
+    password = None
+
+    content_type = request.headers.get("content-type", "")
+    if "application/x-www-form-urlencoded" in content_type or "multipart/form-data" in content_type:
+        try:
+            form = await request.form()
+            email = form.get("username") or form.get("email")
+            password = form.get("password")
+        except Exception:
+            pass
+    
+    if not email or not password:
+        try:
+            body = await request.json()
+            email = body.get("email") or body.get("username")
+            password = body.get("password")
+        except Exception:
+            pass
+
+    if not email or not password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email and password are required"
+        )
+
+    clean_email = email.strip()
+
+    try:
+        user = db.query(User).filter(User.email == clean_email).first()
+    except Exception as e:
+        print("DB error on login lookup:", e)
+        user = None
+
+    # Auto-heal admin user if logging in as configured admin email
+    if not user and clean_email.lower() == settings.ADMIN_EMAIL.lower():
+        try:
+            user = User(
+                name="Shri Krishna Admin",
+                email=settings.ADMIN_EMAIL,
+                phone="7259857486",
+                password_hash=get_password_hash(settings.ADMIN_PASSWORD),
+                role="ADMIN"
+            )
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+        except Exception as err:
+            print("Auto-heal admin error:", err)
+
+    if not user or not verify_password(password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",

@@ -20,16 +20,18 @@ Base.metadata.create_all(bind=engine)
 def auto_migrate():
     from sqlalchemy import text
     with engine.connect() as conn:
-        try:
-            conn.execute(text("ALTER TABLE bookings ADD COLUMN advance_paid FLOAT DEFAULT 0.0"))
-            conn.commit()
-        except Exception:
-            pass
-        try:
-            conn.execute(text("ALTER TABLE bookings ADD COLUMN balance_due FLOAT DEFAULT 0.0"))
-            conn.commit()
-        except Exception:
-            pass
+        for stmt in [
+            "ALTER TABLE users ADD COLUMN reset_token VARCHAR",
+            "ALTER TABLE bookings ADD COLUMN advance_paid FLOAT DEFAULT 0.0",
+            "ALTER TABLE bookings ADD COLUMN balance_due FLOAT DEFAULT 0.0",
+            "ALTER TABLE vehicles ADD COLUMN extra_km_charge FLOAT DEFAULT 10.0",
+            "ALTER TABLE vehicles ADD COLUMN km_limit INT DEFAULT 300",
+        ]:
+            try:
+                conn.execute(text(stmt))
+                conn.commit()
+            except Exception:
+                pass
 
 auto_migrate()
 create_initial_admin()
