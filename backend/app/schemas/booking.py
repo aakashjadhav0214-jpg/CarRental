@@ -22,8 +22,11 @@ class BookingCreate(BaseModel):
 class PaymentResponse(BaseModel):
     id: str
     gateway_order_id: Optional[str] = None
+    gateway_payment_id: Optional[str] = None
     amount: float
     status: str
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True

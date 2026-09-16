@@ -5,13 +5,9 @@ import api from '../../api/axios';
 export const AdminPayments = () => {
   const [payments, setPayments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // Mock settings for the demo
   const [gatewayEnabled, setGatewayEnabled] = useState(true);
 
   useEffect(() => {
-    // We don't have a dedicated GET /payments endpoint for admin in the MVP yet.
-    // So we will just fetch bookings and extract completed/paid ones to act as a payment ledger.
     const fetchLedger = async () => {
       try {
         const res = await api.get('/admin/bookings');
@@ -220,6 +216,7 @@ export const AdminPayments = () => {
                   <tr className="bg-slate-900/50 text-slate-400 text-xs font-bold uppercase tracking-wider border-b border-slate-800">
                     <th className="p-4">Txn ID</th>
                     <th className="p-4">Customer</th>
+                    <th className="p-4">Payment Date &amp; Time</th>
                     <th className="p-4">UTR / Ref No.</th>
                     <th className="p-4">Amount</th>
                     <th className="p-4">Status</th>
@@ -236,11 +233,18 @@ export const AdminPayments = () => {
                     if (isPendingVerification) statusColor = 'bg-amber-500/10 text-amber-400 border border-amber-500/20 animate-pulse';
 
                     const utrNumber = p.payment?.gateway_payment_id || 'N/A';
+                    const paymentDateObj = p.payment?.created_at ? new Date(p.payment.created_at) : new Date(p.created_at);
+                    const dateStr = paymentDateObj.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+                    const timeStr = paymentDateObj.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
                     
                     return (
                       <tr key={p.id} className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors">
                         <td className="p-4 font-mono text-xs text-slate-500">#{p.booking_number || p.id.substring(0, 6)}</td>
                         <td className="p-4 font-bold text-white">{p.user?.name || 'Unknown'}</td>
+                        <td className="p-4 text-xs font-semibold text-slate-300">
+                          <div className="font-bold text-white">{dateStr}</div>
+                          <div className="text-[11px] text-emerald-400 font-mono font-semibold mt-0.5">{timeStr}</div>
+                        </td>
                         <td className="p-4 font-mono text-xs text-emerald-300 font-bold">{utrNumber}</td>
                         <td className="p-4 font-bold text-white">₹{p.total_amount}</td>
                         <td className="p-4">
