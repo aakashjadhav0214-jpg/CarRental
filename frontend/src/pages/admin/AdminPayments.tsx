@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { CreditCard, TrendingUp, DollarSign, Settings, Server } from 'lucide-react';
-import { Button } from '../../components/ui/Button';
 import api from '../../api/axios';
 
 export const AdminPayments = () => {
@@ -10,7 +8,6 @@ export const AdminPayments = () => {
 
   // Mock settings for the demo
   const [gatewayEnabled, setGatewayEnabled] = useState(true);
-  const [apiKey, setApiKey] = useState('rzp_test_rEntAl_M0ck_kEy123');
 
   useEffect(() => {
     // We don't have a dedicated GET /payments endpoint for admin in the MVP yet.
@@ -74,6 +71,18 @@ export const AdminPayments = () => {
     }
   };
 
+  const handleVerifyUpi = async (bookingId: string, action: 'APPROVE' | 'REJECT') => {
+    if (!window.confirm(`Are you sure you want to ${action === 'APPROVE' ? 'APPROVE & MARK PAID' : 'REJECT & CANCEL'} this payment?`)) return;
+    try {
+      await api.post(`/payments/verify-upi/${bookingId}`, { action });
+      alert(`Payment ${action === 'APPROVE' ? 'Approved & Confirmed' : 'Rejected'} successfully!`);
+      const res = await api.get('/admin/bookings');
+      setPayments(res.data);
+    } catch (err: any) {
+      alert(err.response?.data?.detail || 'Failed to update payment status');
+    }
+  };
+
   return (
     <div className="max-w-6xl mx-auto space-y-8">
       
@@ -83,7 +92,7 @@ export const AdminPayments = () => {
             <CreditCard size={28} />
           </div>
           <div>
-            <h1 className="text-3xl font-extrabold tracking-tight">Payments & Revenue</h1>
+            <h1 className="text-3xl font-extrabold tracking-tight text-white">Payments & Revenue</h1>
             <p className="text-slate-400">Manage transaction history and gateway settings.</p>
           </div>
         </div>
@@ -163,49 +172,34 @@ export const AdminPayments = () => {
                 accept="image/*"
                 onChange={handleQrUpload}
                 disabled={uploadingQr}
-                className="block w-full text-xs text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-600 file:text-white hover:file:bg-emerald-500 cursor-pointer"
+                className="block w-full text-xs text-slate-400 file:mr-3 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-600 file:text-white hover:file:bg-emerald-500 cursor-pointer"
               />
             </label>
-            {uploadingQr && <p className="text-xs text-emerald-400 font-bold mt-2 animate-pulse">Uploading scanner photo...</p>}
+            {uploadingQr && <p className="text-xs text-emerald-400 font-semibold mt-2 animate-pulse">Uploading scanner...</p>}
           </div>
 
-          <div className="glass-card p-6 rounded-2xl border border-slate-800 h-fit">
-            <div className="flex items-center gap-2 mb-6 border-b border-slate-800 pb-4">
-              <Settings size={20} className="text-slate-400" />
-              <h2 className="text-lg font-bold text-white">Gateway Configuration</h2>
+          {/* Configuration Settings */}
+          <div className="glass-card p-6 rounded-2xl border border-slate-800 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <Settings size={18} className="text-slate-400" />
+                <h2 className="text-base font-bold text-white">Gateway Configuration</h2>
+              </div>
             </div>
-            
-            <div className="space-y-6">
-              <div className="flex items-center justify-between p-4 bg-slate-900/50 rounded-xl border border-slate-800">
+
+            <div className="space-y-4 pt-2">
+              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-900/50 border border-slate-800">
                 <div>
-                  <p className="font-bold text-white">Accept Payments</p>
+                  <h4 className="text-sm font-bold text-white">Accept Payments</h4>
                   <p className="text-xs text-slate-500">Enable or disable checkout flow.</p>
                 </div>
-                <div 
+                <button 
                   onClick={() => setGatewayEnabled(!gatewayEnabled)}
-                  className={`w-12 h-6 rounded-full p-1 cursor-pointer transition-colors ${gatewayEnabled ? 'bg-emerald-500' : 'bg-slate-700'}`}
+                  className={`w-12 h-6 rounded-full transition-colors relative p-1 ${gatewayEnabled ? 'bg-emerald-500' : 'bg-slate-700'}`}
                 >
-                  <motion.div 
-                    className="w-4 h-4 bg-white rounded-full shadow-md"
-                    animate={{ x: gatewayEnabled ? 24 : 0 }}
-                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                  />
-                </div>
+                  <div className={`w-4 h-4 rounded-full bg-white transition-transform ${gatewayEnabled ? 'translate-x-6' : 'translate-x-0'}`}></div>
+                </button>
               </div>
-
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Razorpay API Key</label>
-                <input 
-                  type="text" 
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white font-mono text-sm focus:border-indigo-500 outline-none"
-                />
-              </div>
-              
-              <Button className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl py-3 shadow-lg shadow-indigo-500/20">
-                Save Configuration
-              </Button>
             </div>
           </div>
         </div>
@@ -226,29 +220,55 @@ export const AdminPayments = () => {
                   <tr className="bg-slate-900/50 text-slate-400 text-xs font-bold uppercase tracking-wider border-b border-slate-800">
                     <th className="p-4">Txn ID</th>
                     <th className="p-4">Customer</th>
-                    <th className="p-4">Date</th>
+                    <th className="p-4">UTR / Ref No.</th>
                     <th className="p-4">Amount</th>
                     <th className="p-4">Status</th>
+                    <th className="p-4 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="text-sm">
                   {payments.map((p) => {
                     const isCancelled = p.booking_status === 'CANCELLED';
-                    const displayStatus = isCancelled ? 'REFUNDED' : (p.payment_status || 'SUCCESS');
-                    const statusColor = isCancelled 
-                      ? 'bg-red-500/10 text-red-400 border border-red-500/20' 
-                      : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+                    const isPendingVerification = p.payment_status === 'PENDING_VERIFICATION';
+                    const displayStatus = isCancelled ? 'CANCELLED' : (p.payment_status || 'PAID');
+                    let statusColor = 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+                    if (isCancelled) statusColor = 'bg-red-500/10 text-red-400 border border-red-500/20';
+                    if (isPendingVerification) statusColor = 'bg-amber-500/10 text-amber-400 border border-amber-500/20 animate-pulse';
+
+                    const utrNumber = p.payment?.gateway_payment_id || 'N/A';
                     
                     return (
                       <tr key={p.id} className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors">
-                        <td className="p-4 font-mono text-xs text-slate-500">pay_{p.id.substring(0, 8)}</td>
+                        <td className="p-4 font-mono text-xs text-slate-500">#{p.booking_number || p.id.substring(0, 6)}</td>
                         <td className="p-4 font-bold text-white">{p.user?.name || 'Unknown'}</td>
-                        <td className="p-4 text-slate-400">{new Date(p.created_at).toLocaleDateString()}</td>
+                        <td className="p-4 font-mono text-xs text-emerald-300 font-bold">{utrNumber}</td>
                         <td className="p-4 font-bold text-white">₹{p.total_amount}</td>
                         <td className="p-4">
-                          <span className={`px-2 py-1 rounded font-bold text-xs border ${statusColor}`}>
+                          <span className={`px-2.5 py-1 rounded-lg font-bold text-xs ${statusColor}`}>
                             {displayStatus}
                           </span>
+                        </td>
+                        <td className="p-4 text-right">
+                          {isPendingVerification ? (
+                            <div className="flex justify-end gap-2">
+                              <button 
+                                onClick={() => handleVerifyUpi(p.id, 'APPROVE')}
+                                className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-colors shadow-xs"
+                                title="Approve & Mark Paid"
+                              >
+                                Approve
+                              </button>
+                              <button 
+                                onClick={() => handleVerifyUpi(p.id, 'REJECT')}
+                                className="px-2.5 py-1 rounded-lg bg-rose-600/80 hover:bg-rose-600 text-white font-bold text-xs transition-colors"
+                                title="Reject Invalid UTR"
+                              >
+                                Reject
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-slate-500 font-medium">Verified</span>
+                          )}
                         </td>
                       </tr>
                     );

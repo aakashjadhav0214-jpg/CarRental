@@ -45,6 +45,11 @@ def upload_qr_scanner(
     return {"status": "success", "url": f"/uploads/{target_filename}"}
 
 
+from pydantic import BaseModel
+
+class UPIVerifyAction(BaseModel):
+    action: str # "APPROVE" or "REJECT"
+
 @router.post("/submit-upi")
 def submit_upi_payment(
     req: UPIPaymentSubmitRequest,
@@ -55,6 +60,21 @@ def submit_upi_payment(
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
         
+    utr = req.utr_number.strip()
+    if not utr or len(utr) < 6:
+        raise HTTPException(status_code=400, detail="Please enter a valid 12-digit UTR / Reference Number.")
+
+    # 1. Prevent duplicate UTR reuse across bookings
+    existing_payment = db.query(Payment).filter(
+        Payment.gateway_payment_id == utr,
+        Payment.booking_id != booking.id
+    ).first()
+    if existing_payment:
+        raise HTTPException(
+            status_code=400, 
+            detail="This UTR / Reference Number has already been submitted for another booking."
+        )
+
     payment = booking.payment
     if not payment:
         payment = Payment(booking_id=booking.id, amount=booking.total_amount)
@@ -62,7 +82,7 @@ def submit_upi_payment(
         
     payment.gateway = "UPI_QR"
     payment.method = "UPI"
-    payment.gateway_payment_id = req.utr_number
+    payment.gateway_payment_id = utr
     payment.status = "SUBMITTED"
     
     booking.booking_status = "CONFIRMED"
@@ -70,6 +90,36 @@ def submit_upi_payment(
     
     db.commit()
     return {"status": "success", "message": "UPI payment reference submitted successfully."}
+
+
+@router.post("/verify-upi/{booking_id}")
+def verify_upi_payment(
+    booking_id: str,
+    body: UPIVerifyAction,
+    db: Session = Depends(deps.get_db),
+    current_admin: User = Depends(deps.get_current_admin_user)
+):
+    booking = db.query(Booking).filter(Booking.id == booking_id).first()
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+        
+    payment = booking.payment
+    if not payment:
+        raise HTTPException(status_code=404, detail="Payment record not found")
+        
+    if body.action == "APPROVE":
+        payment.status = "CAPTURED"
+        booking.payment_status = "PAID"
+        booking.booking_status = "CONFIRMED"
+    elif body.action == "REJECT":
+        payment.status = "FAILED"
+        booking.payment_status = "REJECTED"
+        booking.booking_status = "CANCELLED"
+    else:
+        raise HTTPException(status_code=400, detail="Invalid verification action")
+        
+    db.commit()
+    return {"status": "success", "message": f"Payment {body.action.lower()}d successfully"}
 
 
 @router.post("/create-order/{booking_id}", response_model=PaymentOrderResponse)
