@@ -97,19 +97,19 @@ export const Home = () => {
     {
       title: 'Self Drive Car Rental',
       subtitle: 'Rent & drive it yourself',
-      image: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&q=80',
+      image: '/uploads/swift.png',
       category: 'Cars'
     },
     {
       title: 'Bikes',
       subtitle: 'For city rides & quick getaways',
-      image: 'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&q=80',
+      image: '/uploads/ns.webp',
       category: 'Bikes'
     },
     {
-      title: 'Mopeds',
+      title: 'Mopeds & Scooters',
       subtitle: 'Effortless daily commutes',
-      image: 'https://images.unsplash.com/photo-1605816988069-b11383b50717?auto=format&fit=crop&q=80',
+      image: '/uploads/activa.webp',
       category: 'Mopeds/Scooters'
     }
   ];
@@ -342,7 +342,7 @@ export const Home = () => {
                 <div className="p-4 pt-0 mt-auto">
                   <div className="h-44 w-full rounded-xl overflow-hidden bg-slate-100 relative">
                     <img 
-                      src={cat.image.startsWith('/uploads/') ? `http://${window.location.hostname}:8000${cat.image}` : cat.image} 
+                      src={cat.image.startsWith('http://localhost:8000') ? cat.image.replace('http://localhost:8000', '') : cat.image} 
                       alt={cat.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />

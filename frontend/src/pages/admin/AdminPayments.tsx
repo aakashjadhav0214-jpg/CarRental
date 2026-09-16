@@ -37,8 +37,8 @@ export const AdminPayments = () => {
       try {
         const res = await api.get('/payments/qr-scanner-url');
         if (res.data.url) {
-          const resolveUrl = res.data.url.startsWith('/uploads/') 
-            ? `http://${window.location.hostname}:8000${res.data.url}` 
+          const resolveUrl = res.data.url.startsWith('http://localhost:8000') 
+            ? res.data.url.replace('http://localhost:8000', '') 
             : res.data.url;
           setCurrentQrUrl(resolveUrl);
         }
@@ -61,8 +61,8 @@ export const AdminPayments = () => {
         headers: { 'Content-Type': 'multipart/form-stream' }
       });
       alert('GPay Scanner image uploaded successfully!');
-      const resolveUrl = res.data.url.startsWith('/uploads/') 
-        ? `http://${window.location.hostname}:8000${res.data.url}?t=${Date.now()}` 
+      const resolveUrl = res.data.url.startsWith('http://localhost:8000') 
+        ? res.data.url.replace('http://localhost:8000', '') + `?t=${Date.now()}` 
         : res.data.url;
       setCurrentQrUrl(resolveUrl);
     } catch (err: any) {

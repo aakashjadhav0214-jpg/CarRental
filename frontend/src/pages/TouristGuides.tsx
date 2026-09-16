@@ -89,7 +89,7 @@ export const TouristGuides = () => {
               {/* Image & Distance Tag */}
               <div className="h-56 relative overflow-hidden bg-slate-100">
                 <img 
-                  src={place.image.startsWith('/uploads/') ? `http://${window.location.hostname}:8000${place.image}` : place.image}
+                  src={place.image.startsWith('http://localhost:8000') ? place.image.replace('http://localhost:8000', '') : place.image}
                   alt={place.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />

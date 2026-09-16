@@ -300,9 +300,8 @@ export const VehicleDetails = () => {
   };
 
   const resolveImageUrl = (url: string) => {
-    if (!url) return 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&q=80';
-    if (url.startsWith('/uploads/')) return `http://${window.location.hostname}:8000${url}`;
-    if (url.startsWith('http://localhost:8000/')) return url.replace('http://localhost:8000', `http://${window.location.hostname}:8000`);
+    if (!url) return '/uploads/swift.png';
+    if (url.startsWith('http://localhost:8000')) return url.replace('http://localhost:8000', '');
     return url;
   };
 
