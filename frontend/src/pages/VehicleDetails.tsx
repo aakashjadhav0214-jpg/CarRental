@@ -624,8 +624,8 @@ export const VehicleDetails = () => {
 
       {/* Google Pay / PhonePe UPI Scanner Modal */}
       {showUpiModal && (
-        <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full border border-slate-200 shadow-2xl space-y-5 animate-scale-up">
+        <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-xs z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl p-5 sm:p-6 max-w-md w-full border border-slate-200 shadow-2xl space-y-4 my-auto max-h-[90vh] overflow-y-auto animate-scale-up">
             <div className="text-center">
               <span className="bg-emerald-100 text-emerald-800 text-[11px] font-black uppercase px-3 py-1 rounded-full border border-emerald-200">
                 Manual Entry UPI Payment
@@ -638,11 +638,11 @@ export const VehicleDetails = () => {
 
             {/* QR Code Card */}
             <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-center space-y-3">
-              <div className="bg-white p-3 rounded-2xl border border-slate-200 shadow-xs inline-block">
+              <div className="bg-white p-2.5 rounded-2xl border border-slate-200 shadow-xs inline-block">
                 <img 
                   src={customQrUrl || fixedAmountQrUrl} 
                   alt="Shri Krishna Rentals PhonePe / GPay Scanner" 
-                  className="max-h-72 max-w-full mx-auto rounded-xl object-contain"
+                  className="max-h-48 max-w-full mx-auto rounded-xl object-contain"
                 />
               </div>
               
