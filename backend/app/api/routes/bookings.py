@@ -130,6 +130,8 @@ def create_booking(
         deposit=pricing["deposit"],
         discount=pricing["discount"],
         total_amount=pricing["total_amount"],
+        advance_paid=0.0,
+        balance_due=pricing["total_amount"],
         booking_status="PENDING",
         payment_status="PENDING"
     )

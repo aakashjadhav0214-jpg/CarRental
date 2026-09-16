@@ -21,9 +21,11 @@ class Booking(Base):
     discount = Column(Float, default=0.0)
     deposit = Column(Float, nullable=False)
     total_amount = Column(Float, nullable=False)
+    advance_paid = Column(Float, default=0.0)
+    balance_due = Column(Float, default=0.0)
     
     booking_status = Column(String, default="PENDING") # PENDING, CONFIRMED, ACTIVE, COMPLETED, CANCELLED
-    payment_status = Column(String, default="PENDING") # PENDING, PAID, REFUNDED
+    payment_status = Column(String, default="PENDING") # PENDING, PAID, ADVANCE_PAID, REFUNDED
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

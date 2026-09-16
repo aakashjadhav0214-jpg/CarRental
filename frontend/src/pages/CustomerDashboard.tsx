@@ -257,11 +257,17 @@ export const CustomerDashboard = () => {
                       </div>
                       <div className="text-right">
                         <p className="text-2xl font-black text-slate-900">₹{booking.total_amount}</p>
-                        <span className={`text-xs font-bold inline-block mt-1 px-2 py-0.5 rounded ${
-                          booking.payment_status === 'PAID' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
+                        <span className={`text-xs font-bold inline-block mt-1 px-2.5 py-0.5 rounded-md ${
+                          booking.payment_status === 'PAID' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+                          booking.payment_status === 'ADVANCE_PAID' ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-amber-50 text-amber-700 border border-amber-200'
                         }`}>
-                          Payment: {booking.payment_status}
+                          Payment: {booking.payment_status === 'ADVANCE_PAID' ? 'ADVANCE PAID' : booking.payment_status}
                         </span>
+                        {booking.payment_status === 'ADVANCE_PAID' && (booking.balance_due ?? 0) > 0 && (
+                          <div className="text-[11px] font-bold text-amber-800 bg-amber-50 px-2 py-1 rounded border border-amber-200 mt-1">
+                            Advance: ₹{booking.advance_paid} | Balance: ₹{booking.balance_due}
+                          </div>
+                        )}
                       </div>
                     </div>
                     

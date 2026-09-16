@@ -75,10 +75,19 @@ def submit_upi_payment(
             detail="This UTR / Reference Number has already been submitted for another booking."
         )
 
+    paid_val = booking.total_amount
+    if req.amount_paid and req.amount_paid > 0:
+        paid_val = min(req.amount_paid, booking.total_amount)
+        
+    booking.advance_paid = round(paid_val, 2)
+    booking.balance_due = round(max(0.0, booking.total_amount - paid_val), 2)
+
     payment = booking.payment
     if not payment:
-        payment = Payment(booking_id=booking.id, amount=booking.total_amount)
+        payment = Payment(booking_id=booking.id, amount=paid_val)
         db.add(payment)
+    else:
+        payment.amount = paid_val
         
     payment.gateway = "UPI_QR"
     payment.method = "UPI"
@@ -109,7 +118,10 @@ def verify_upi_payment(
         
     if body.action == "APPROVE":
         payment.status = "CAPTURED"
-        booking.payment_status = "PAID"
+        if booking.balance_due > 0:
+            booking.payment_status = "ADVANCE_PAID"
+        else:
+            booking.payment_status = "PAID"
         booking.booking_status = "CONFIRMED"
     elif body.action == "REJECT":
         payment.status = "FAILED"
@@ -120,6 +132,28 @@ def verify_upi_payment(
         
     db.commit()
     return {"status": "success", "message": f"Payment {body.action.lower()}d successfully"}
+
+
+@router.post("/settle-balance/{booking_id}")
+def settle_balance_payment(
+    booking_id: str,
+    db: Session = Depends(deps.get_db),
+    current_admin: User = Depends(deps.get_current_admin_user)
+):
+    booking = db.query(Booking).filter(Booking.id == booking_id).first()
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+        
+    booking.advance_paid = booking.total_amount
+    booking.balance_due = 0.0
+    booking.payment_status = "PAID"
+    
+    if booking.payment:
+        booking.payment.amount = booking.total_amount
+        booking.payment.status = "CAPTURED"
+        
+    db.commit()
+    return {"status": "success", "message": "Remaining balance settled successfully."}
 
 
 @router.post("/create-order/{booking_id}", response_model=PaymentOrderResponse)

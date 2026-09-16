@@ -15,4 +15,5 @@ class PaymentVerifyRequest(BaseModel):
 class UPIPaymentSubmitRequest(BaseModel):
     booking_id: str
     utr_number: str
+    amount_paid: Optional[float] = None
 

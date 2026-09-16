@@ -9,6 +9,22 @@ from app.config import settings
 # Create database tables
 Base.metadata.create_all(bind=engine)
 
+def auto_migrate():
+    from sqlalchemy import text
+    with engine.connect() as conn:
+        try:
+            conn.execute(text("ALTER TABLE bookings ADD COLUMN advance_paid FLOAT DEFAULT 0.0"))
+            conn.commit()
+        except Exception:
+            pass
+        try:
+            conn.execute(text("ALTER TABLE bookings ADD COLUMN balance_due FLOAT DEFAULT 0.0"))
+            conn.commit()
+        except Exception:
+            pass
+
+auto_migrate()
+
 def create_initial_admin():
     db = SessionLocal()
     admin = db.query(User).filter(User.role == "ADMIN").first()

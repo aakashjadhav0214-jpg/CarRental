@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { CreditCard, TrendingUp, DollarSign, Settings, Server } from 'lucide-react';
+import { CreditCard, TrendingUp, DollarSign } from 'lucide-react';
 import api from '../../api/axios';
 
 export const AdminPayments = () => {
@@ -21,8 +21,10 @@ export const AdminPayments = () => {
     fetchLedger();
   }, []);
 
-  const validPayments = payments.filter(p => p.payment_status === 'PAID' && p.booking_status !== 'CANCELLED');
-  const totalRevenue = validPayments.reduce((acc, curr) => acc + curr.total_amount, 0);
+  const activeBookings = payments.filter(p => p.booking_status !== 'CANCELLED');
+  const totalRevenue = activeBookings.reduce((acc, curr) => acc + (curr.total_amount || 0), 0);
+  const totalAdvanceCollected = activeBookings.reduce((acc, curr) => acc + (curr.advance_paid || (curr.payment_status === 'PAID' ? curr.total_amount : 0)), 0);
+  const totalBalanceDue = activeBookings.reduce((acc, curr) => acc + (curr.balance_due ?? (curr.payment_status === 'PAID' ? 0 : curr.total_amount)), 0);
 
   const [uploadingQr, setUploadingQr] = useState(false);
   const [currentQrUrl, setCurrentQrUrl] = useState<string | null>(null);
@@ -68,7 +70,7 @@ export const AdminPayments = () => {
   };
 
   const handleVerifyUpi = async (bookingId: string, action: 'APPROVE' | 'REJECT') => {
-    if (!window.confirm(`Are you sure you want to ${action === 'APPROVE' ? 'APPROVE & MARK PAID' : 'REJECT & CANCEL'} this payment?`)) return;
+    if (!window.confirm(`Are you sure you want to ${action === 'APPROVE' ? 'APPROVE & CONFIRM' : 'REJECT & CANCEL'} this payment?`)) return;
     try {
       await api.post(`/payments/verify-upi/${bookingId}`, { action });
       alert(`Payment ${action === 'APPROVE' ? 'Approved & Confirmed' : 'Rejected'} successfully!`);
@@ -76,6 +78,18 @@ export const AdminPayments = () => {
       setPayments(res.data);
     } catch (err: any) {
       alert(err.response?.data?.detail || 'Failed to update payment status');
+    }
+  };
+
+  const handleSettleBalance = async (bookingId: string) => {
+    if (!window.confirm('Mark remaining balance as collected and fully paid?')) return;
+    try {
+      await api.post(`/payments/settle-balance/${bookingId}`);
+      alert('Balance settled successfully! Booking marked fully paid.');
+      const res = await api.get('/admin/bookings');
+      setPayments(res.data);
+    } catch (err: any) {
+      alert(err.response?.data?.detail || 'Failed to settle balance');
     }
   };
 
@@ -88,46 +102,48 @@ export const AdminPayments = () => {
             <CreditCard size={28} />
           </div>
           <div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-white">Payments & Revenue</h1>
-            <p className="text-slate-400">Manage transaction history and gateway settings.</p>
+            <h1 className="text-3xl font-extrabold tracking-tight text-white">Payments &amp; Revenue</h1>
+            <p className="text-slate-400">Manage transaction history, advance payments &amp; balance collections.</p>
           </div>
         </div>
       </div>
 
       {/* Stats Row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="glass-card p-6 rounded-2xl border border-slate-800">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-slate-400 font-bold uppercase tracking-wider text-xs">Gross Revenue</h3>
-            <DollarSign className="text-emerald-400" size={20} />
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="glass-card p-5 rounded-2xl border border-slate-800">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-slate-400 font-bold uppercase tracking-wider text-xs">Total Booking Revenue</h3>
+            <DollarSign className="text-emerald-400" size={18} />
           </div>
-          <p className="text-4xl font-extrabold text-white">₹{totalRevenue.toLocaleString()}</p>
-          <p className="text-emerald-400 text-sm font-semibold flex items-center gap-1 mt-2">
-            <TrendingUp size={14} /> +12.5% this month
-          </p>
+          <p className="text-3xl font-extrabold text-white">₹{totalRevenue.toLocaleString()}</p>
+          <p className="text-slate-500 text-xs font-semibold mt-1">Full contract total</p>
         </div>
         
-        <div className="glass-card p-6 rounded-2xl border border-slate-800">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-slate-400 font-bold uppercase tracking-wider text-xs">Total Transactions</h3>
-            <CreditCard className="text-indigo-400" size={20} />
+        <div className="glass-card p-5 rounded-2xl border border-emerald-500/30 bg-emerald-950/10">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-slate-400 font-bold uppercase tracking-wider text-xs">Advance Collected</h3>
+            <CreditCard className="text-emerald-400" size={18} />
           </div>
-          <p className="text-4xl font-extrabold text-white">{validPayments.length}</p>
-          <p className="text-slate-500 text-sm font-medium mt-2">Successful captures</p>
+          <p className="text-3xl font-extrabold text-emerald-400">₹{totalAdvanceCollected.toLocaleString()}</p>
+          <p className="text-emerald-500/80 text-xs font-semibold mt-1">Paid in advance</p>
+        </div>
+
+        <div className="glass-card p-5 rounded-2xl border border-amber-500/30 bg-amber-950/10">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-slate-400 font-bold uppercase tracking-wider text-xs">Balance Due</h3>
+            <TrendingUp className="text-amber-400" size={18} />
+          </div>
+          <p className="text-3xl font-extrabold text-amber-400">₹{totalBalanceDue.toLocaleString()}</p>
+          <p className="text-amber-500/80 text-xs font-semibold mt-1">Due at pickup</p>
         </div>
         
-        <div className="glass-card p-6 rounded-2xl border border-emerald-500/30 bg-emerald-500/5 relative overflow-hidden">
-          <div className="absolute -right-4 -top-4 text-emerald-500/10">
-            <Server size={100} />
+        <div className="glass-card p-5 rounded-2xl border border-slate-800">
+          <h3 className="text-slate-400 font-bold uppercase tracking-wider text-xs mb-3">Gateway Status</h3>
+          <div className="flex items-center gap-2 mb-1">
+            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)] animate-pulse"></div>
+            <span className="text-lg font-bold text-white">Direct UPI Active</span>
           </div>
-          <div className="relative z-10">
-            <h3 className="text-slate-400 font-bold uppercase tracking-wider text-xs mb-4">Gateway Status</h3>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)] animate-pulse"></div>
-              <span className="text-2xl font-bold text-white">Direct UPI Active</span>
-            </div>
-            <p className="text-emerald-400 font-medium text-sm">GPay / PhonePe Scanner Ready</p>
-          </div>
+          <p className="text-emerald-400 font-medium text-xs">GPay / PhonePe Scanner</p>
         </div>
       </div>
 
@@ -161,50 +177,41 @@ export const AdminPayments = () => {
               </div>
             )}
 
-            <label className="block">
-              <span className="sr-only">Choose GPay Scanner photo</span>
+            <label className="block w-full">
               <input 
                 type="file" 
-                accept="image/*"
+                accept="image/*" 
                 onChange={handleQrUpload}
                 disabled={uploadingQr}
-                className="block w-full text-xs text-slate-400 file:mr-3 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-600 file:text-white hover:file:bg-emerald-500 cursor-pointer"
+                className="hidden" 
               />
+              <span className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-xs">
+                {uploadingQr ? 'Uploading Scanner...' : 'Choose File to Change Scanner'}
+              </span>
             </label>
-            {uploadingQr && <p className="text-xs text-emerald-400 font-semibold mt-2 animate-pulse">Uploading scanner...</p>}
           </div>
 
-          {/* Configuration Settings */}
-          <div className="glass-card p-6 rounded-2xl border border-slate-800 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <div className="flex items-center gap-2">
-                <Settings size={18} className="text-slate-400" />
-                <h2 className="text-base font-bold text-white">Gateway Configuration</h2>
+          <div className="glass-card p-6 rounded-2xl border border-slate-800">
+            <h2 className="text-base font-bold text-white mb-4">Gateway Configuration</h2>
+            <div className="flex items-center justify-between p-4 bg-slate-900/50 rounded-xl border border-slate-800">
+              <div>
+                <p className="font-bold text-white text-sm">Accept Payments</p>
+                <p className="text-xs text-slate-400 mt-0.5">Enable or disable checkout flow.</p>
               </div>
-            </div>
-
-            <div className="space-y-4 pt-2">
-              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-900/50 border border-slate-800">
-                <div>
-                  <h4 className="text-sm font-bold text-white">Accept Payments</h4>
-                  <p className="text-xs text-slate-500">Enable or disable checkout flow.</p>
-                </div>
-                <button 
-                  onClick={() => setGatewayEnabled(!gatewayEnabled)}
-                  className={`w-12 h-6 rounded-full transition-colors relative p-1 ${gatewayEnabled ? 'bg-emerald-500' : 'bg-slate-700'}`}
-                >
-                  <div className={`w-4 h-4 rounded-full bg-white transition-transform ${gatewayEnabled ? 'translate-x-6' : 'translate-x-0'}`}></div>
-                </button>
-              </div>
+              <button 
+                onClick={() => setGatewayEnabled(!gatewayEnabled)}
+                className={`w-12 h-6 rounded-full transition-colors relative p-1 ${gatewayEnabled ? 'bg-emerald-500' : 'bg-slate-700'}`}
+              >
+                <div className={`w-4 h-4 rounded-full bg-white transition-transform ${gatewayEnabled ? 'translate-x-6' : 'translate-x-0'}`}></div>
+              </button>
             </div>
           </div>
         </div>
 
-
         {/* Ledger */}
         <div className="lg:col-span-2 glass-card rounded-2xl border border-slate-800 overflow-hidden">
           <div className="p-6 border-b border-slate-800">
-            <h2 className="text-lg font-bold text-white">Recent Transactions</h2>
+            <h2 className="text-lg font-bold text-white">Recent Transactions &amp; Ledger</h2>
           </div>
           
           {loading ? (
@@ -218,7 +225,7 @@ export const AdminPayments = () => {
                     <th className="p-4">Customer</th>
                     <th className="p-4">Payment Date &amp; Time</th>
                     <th className="p-4">UTR / Ref No.</th>
-                    <th className="p-4">Amount</th>
+                    <th className="p-4">Payment Breakdown</th>
                     <th className="p-4">Status</th>
                     <th className="p-4 text-right">Actions</th>
                   </tr>
@@ -227,16 +234,25 @@ export const AdminPayments = () => {
                   {payments.map((p) => {
                     const isCancelled = p.booking_status === 'CANCELLED';
                     const isPendingVerification = p.payment_status === 'PENDING_VERIFICATION';
-                    const displayStatus = isCancelled ? 'CANCELLED' : (p.payment_status || 'PAID');
+                    const isAdvancePaid = p.payment_status === 'ADVANCE_PAID';
+                    
+                    const displayStatus = isCancelled 
+                      ? 'CANCELLED' 
+                      : (isPendingVerification ? 'PENDING VERIFICATION' : (isAdvancePaid ? 'ADVANCE PAID' : (p.payment_status || 'PAID')));
+
                     let statusColor = 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
                     if (isCancelled) statusColor = 'bg-red-500/10 text-red-400 border border-red-500/20';
                     if (isPendingVerification) statusColor = 'bg-amber-500/10 text-amber-400 border border-amber-500/20 animate-pulse';
+                    if (isAdvancePaid) statusColor = 'bg-blue-500/10 text-blue-400 border border-blue-500/20';
 
                     const utrNumber = p.payment?.gateway_payment_id || 'N/A';
                     const paymentDateObj = p.payment?.created_at ? new Date(p.payment.created_at) : new Date(p.created_at);
                     const dateStr = paymentDateObj.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: 'numeric' });
                     const timeStr = paymentDateObj.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true }) + ' IST';
                     
+                    const advanceVal = p.advance_paid ?? p.payment?.amount ?? p.total_amount;
+                    const balanceVal = p.balance_due ?? (p.total_amount - advanceVal);
+
                     return (
                       <tr key={p.id} className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors">
                         <td className="p-4 font-mono text-xs text-slate-500">#{p.booking_number || p.id.substring(0, 6)}</td>
@@ -246,19 +262,34 @@ export const AdminPayments = () => {
                           <div className="text-[11px] text-emerald-400 font-mono font-bold mt-0.5">{timeStr}</div>
                         </td>
                         <td className="p-4 font-mono text-xs text-emerald-300 font-bold">{utrNumber}</td>
-                        <td className="p-4 font-bold text-white">₹{p.total_amount}</td>
+                        
+                        {/* Payment Breakdown Column */}
+                        <td className="p-4 text-xs font-semibold">
+                          <div className="text-white font-extrabold text-sm">₹{p.total_amount} <span className="text-[10px] text-slate-400 font-normal">Total</span></div>
+                          <div className="text-emerald-400 text-[11px] font-bold mt-0.5">
+                            Advance Paid: ₹{advanceVal}
+                          </div>
+                          {balanceVal > 0 ? (
+                            <div className="text-amber-400 text-[11px] font-extrabold mt-0.5">
+                              Balance Due: ₹{balanceVal}
+                            </div>
+                          ) : (
+                            <div className="text-emerald-300 text-[10px] font-semibold mt-0.5">✓ Fully Settled</div>
+                          )}
+                        </td>
+
                         <td className="p-4">
-                          <span className={`px-2.5 py-1 rounded-lg font-bold text-xs ${statusColor}`}>
+                          <span className={`px-2.5 py-1 rounded-lg font-bold text-[11px] block text-center ${statusColor}`}>
                             {displayStatus}
                           </span>
                         </td>
                         <td className="p-4 text-right">
                           {isPendingVerification ? (
-                            <div className="flex justify-end gap-2">
+                            <div className="flex justify-end gap-1.5">
                               <button 
                                 onClick={() => handleVerifyUpi(p.id, 'APPROVE')}
                                 className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-colors shadow-xs"
-                                title="Approve & Mark Paid"
+                                title="Approve Payment"
                               >
                                 Approve
                               </button>
@@ -270,6 +301,14 @@ export const AdminPayments = () => {
                                 Reject
                               </button>
                             </div>
+                          ) : balanceVal > 0 && !isCancelled ? (
+                            <button
+                              onClick={() => handleSettleBalance(p.id)}
+                              className="px-2.5 py-1 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs transition-colors shadow-xs"
+                              title="Collect remaining balance at pickup"
+                            >
+                              Settle ₹{balanceVal}
+                            </button>
                           ) : (
                             <span className="text-xs text-slate-500 font-medium">Verified</span>
                           )}

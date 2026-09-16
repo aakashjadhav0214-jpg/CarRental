@@ -155,6 +155,7 @@ export const VehicleDetails = () => {
   const [showUpiModal, setShowUpiModal] = useState(false);
   const [createdBookingId, setCreatedBookingId] = useState<string | null>(null);
   const [utrNumber, setUtrNumber] = useState('');
+  const [advanceAmountInput, setAdvanceAmountInput] = useState<string>('');
   const [upiSubmitting, setUpiSubmitting] = useState(false);
 
   const handleInitiateCheckout = async (method: 'ONLINE' | 'CASH' | 'UPI_QR') => {
@@ -188,6 +189,7 @@ export const VehicleDetails = () => {
 
       if (method === 'UPI_QR') {
         setIsProcessing(false);
+        setAdvanceAmountInput(String(upiAmount));
         setShowUpiModal(true);
         return;
       }
@@ -274,9 +276,11 @@ export const VehicleDetails = () => {
     }
     setUpiSubmitting(true);
     try {
+      const paidAmount = advanceAmountInput ? Number(advanceAmountInput) : upiAmount;
       await api.post('/payments/submit-upi', {
         booking_id: createdBookingId,
-        utr_number: utrNumber.trim()
+        utr_number: utrNumber.trim(),
+        amount_paid: paidAmount
       });
       alert('Payment submitted successfully! Your booking is reserved.');
       setShowUpiModal(false);
@@ -672,8 +676,43 @@ export const VehicleDetails = () => {
               </a>
             </div>
 
-            {/* UTR Form */}
+            {/* Advance & UTR Form */}
             <form onSubmit={handleSubmitUpiPayment} className="space-y-4">
+              <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2.5">
+                <div className="flex justify-between items-center text-xs font-bold text-slate-700">
+                  <span>Total Booking Amount:</span>
+                  <span className="font-extrabold text-slate-900 text-sm">₹{upiAmount.toFixed(2)}</span>
+                </div>
+                <div>
+                  <label className="text-[11px] font-black text-slate-700 uppercase tracking-wide block mb-1">
+                    Advance Amount Paid (₹):
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-2 text-slate-400 font-bold text-sm">₹</span>
+                    <input 
+                      type="number"
+                      value={advanceAmountInput}
+                      onChange={e => setAdvanceAmountInput(e.target.value)}
+                      max={upiAmount}
+                      min={1}
+                      className="w-full pl-7 pr-3 py-2 rounded-lg bg-white border border-slate-300 text-sm font-extrabold text-emerald-700 outline-none focus:border-emerald-600"
+                      placeholder={`e.g. ${upiAmount}`}
+                      required
+                    />
+                  </div>
+                  <span className="text-[10px] text-slate-400 font-medium block mt-1">
+                    Enter the amount you paid into GPay/PhonePe (Default is full amount ₹{upiAmount.toFixed(2)})
+                  </span>
+                </div>
+
+                {Number(advanceAmountInput) > 0 && Number(advanceAmountInput) < upiAmount && (
+                  <div className="flex justify-between items-center text-xs font-bold text-amber-800 bg-amber-50 p-2.5 rounded-lg border border-amber-200">
+                    <span>Remaining Balance Due at Pickup:</span>
+                    <span className="font-extrabold text-amber-900 text-sm">₹{(upiAmount - Number(advanceAmountInput)).toFixed(2)}</span>
+                  </div>
+                )}
+              </div>
+
               <div>
                 <label className="text-xs font-extrabold text-slate-700 block mb-1">
                   12-Digit UPI UTR / Transaction Reference Number:

@@ -61,6 +61,8 @@ class BookingResponse(BaseModel):
     deposit: float
     discount: float
     total_amount: float
+    advance_paid: Optional[float] = 0.0
+    balance_due: Optional[float] = 0.0
     booking_status: str
     payment_status: str
     created_at: datetime
