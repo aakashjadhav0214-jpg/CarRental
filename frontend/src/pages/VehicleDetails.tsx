@@ -40,6 +40,7 @@ export const VehicleDetails = () => {
   const [error, setError] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [showPaymentOptions, setShowPaymentOptions] = useState(false);
+  const [customQrUrl, setCustomQrUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchVehicle = async () => {
@@ -54,6 +55,22 @@ export const VehicleDetails = () => {
       fetchVehicle();
     }
   }, [id]);
+
+  useEffect(() => {
+    const fetchQrUrl = async () => {
+      try {
+        const res = await api.get('/payments/qr-scanner-url');
+        if (res.data?.url) {
+          setCustomQrUrl(resolveImageUrl(res.data.url));
+        } else {
+          setCustomQrUrl('/gpay_scanner.jpg');
+        }
+      } catch (err) {
+        setCustomQrUrl('/gpay_scanner.jpg');
+      }
+    };
+    fetchQrUrl();
+  }, []);
 
 
 
@@ -634,9 +651,9 @@ export const VehicleDetails = () => {
             <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-center space-y-3">
               <div className="bg-white p-3 rounded-2xl border border-slate-200 shadow-xs inline-block">
                 <img 
-                  src={fixedAmountQrUrl} 
-                  alt="Shri Krishna Rentals GPay Scanner" 
-                  className="w-52 h-52 mx-auto rounded-lg"
+                  src={customQrUrl || fixedAmountQrUrl} 
+                  alt="Shri Krishna Rentals PhonePe / GPay Scanner" 
+                  className="max-h-72 max-w-full mx-auto rounded-xl object-contain"
                 />
               </div>
               
