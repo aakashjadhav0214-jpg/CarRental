@@ -313,8 +313,10 @@ export const VehicleDetails = () => {
   const upiAmount = displayPricing ? (displayPricing.total_price || displayPricing.totalPrice) : vehicle.daily_price;
   
   const shopUpiId = "aakashjadhav0214@oksbi";
+  // Standard static UPI link (prompts customer to manually enter amount in GPay / PhonePe / Paytm)
+  const manualUpiLink = `upi://pay?pa=${shopUpiId}&pn=Shri%20Krishna%20Rentals&tn=Rental%20Booking`;
   const upiDeepLink = `upi://pay?pa=${shopUpiId}&pn=Shri%20Krishna%20Rentals&am=${upiAmount.toFixed(2)}&cu=INR&tn=Rental%20Booking`;
-  const fixedAmountQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(upiDeepLink)}`;
+  const fixedAmountQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(manualUpiLink)}`;
 
   return (
     <div className="bg-slate-50 min-h-screen pt-20 md:pt-28 pb-20 text-slate-900">
@@ -577,7 +579,7 @@ export const VehicleDetails = () => {
                     onClick={() => handleInitiateCheckout('UPI_QR')}
                     className="w-full py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20 transition-all active:scale-[0.99]"
                   >
-                    <CreditCard size={18} /> Pay via GPay / PhonePe (Preset ₹{upiAmount.toFixed(2)})
+                    <CreditCard size={18} /> Pay via GPay / PhonePe (Enter ₹{upiAmount.toFixed(2)} Manually)
                   </button>
 
                   {/* Option 2: Cash on Pickup */}
@@ -620,7 +622,7 @@ export const VehicleDetails = () => {
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full border border-slate-200 shadow-2xl space-y-5 animate-scale-up">
             <div className="text-center">
               <span className="bg-emerald-100 text-emerald-800 text-[11px] font-black uppercase px-3 py-1 rounded-full border border-emerald-200">
-                Preset Fixed Amount UPI Payment
+                Manual Entry UPI Payment
               </span>
               <h3 className="text-xl font-black text-slate-900 mt-2">Scan &amp; Pay via GPay / PhonePe</h3>
               <p className="text-xs text-slate-500 font-semibold mt-1">
@@ -633,16 +635,16 @@ export const VehicleDetails = () => {
               <div className="bg-white p-3 rounded-2xl border border-slate-200 shadow-xs inline-block">
                 <img 
                   src={fixedAmountQrUrl} 
-                  alt="Shri Krishna Rentals Fixed Amount GPay Scanner" 
+                  alt="Shri Krishna Rentals GPay Scanner" 
                   className="w-52 h-52 mx-auto rounded-lg"
                 />
               </div>
               
               <div>
-                <span className="text-xs font-bold text-slate-500 uppercase block">Locked Payable Amount</span>
+                <span className="text-xs font-bold text-slate-500 uppercase block">Total Amount to Pay</span>
                 <span className="text-3xl font-black text-emerald-700">₹{upiAmount.toFixed(2)}</span>
-                <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 block w-fit mx-auto mt-1">
-                  🔒 Amount preset &amp; locked in QR code
+                <span className="text-[11px] font-bold text-amber-800 bg-amber-50 px-3 py-1 rounded-full border border-amber-200 block w-fit mx-auto mt-1.5 shadow-2xs">
+                  ✏️ Enter ₹{upiAmount.toFixed(2)} manually in GPay / PhonePe / Paytm
                 </span>
               </div>
 
@@ -664,7 +666,7 @@ export const VehicleDetails = () => {
                 href={upiDeepLink}
                 className="mt-3 w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20 transition-all"
               >
-                <span>Open GPay / PhonePe App (₹{upiAmount.toFixed(2)})</span>
+                <span>Open GPay / PhonePe App (Enter ₹{upiAmount.toFixed(2)} Manually)</span>
               </a>
             </div>
 
