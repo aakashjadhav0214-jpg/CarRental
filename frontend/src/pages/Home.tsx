@@ -400,10 +400,8 @@ export const Home = () => {
                   || vehicle.images?.[0]?.image_url 
                   || 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&q=80';
 
-                if (imgUrl.startsWith('/uploads/')) {
-                  imgUrl = `http://${window.location.hostname}:8000${imgUrl}`;
-                } else if (imgUrl.startsWith('http://localhost:8000/')) {
-                  imgUrl = imgUrl.replace('http://localhost:8000', `http://${window.location.hostname}:8000`);
+                if (imgUrl.startsWith('http://localhost:8000')) {
+                  imgUrl = imgUrl.replace('http://localhost:8000', '');
                 }
 
                 return (

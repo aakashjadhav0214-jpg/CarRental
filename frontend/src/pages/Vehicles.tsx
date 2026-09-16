@@ -302,10 +302,8 @@ export const Vehicles = () => {
                     || vehicle.images?.[0]?.image_url 
                     || 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&q=80';
                   
-                  if (primaryImage.startsWith('/uploads/')) {
-                    primaryImage = `http://${window.location.hostname}:8000${primaryImage}`;
-                  } else if (primaryImage.startsWith('http://localhost:8000/')) {
-                    primaryImage = primaryImage.replace('http://localhost:8000', `http://${window.location.hostname}:8000`);
+                  if (primaryImage.startsWith('http://localhost:8000')) {
+                    primaryImage = primaryImage.replace('http://localhost:8000', '');
                   }
                   
                   const estimatedTotal = tripDurationDays ? (vehicle.daily_price * tripDurationDays) : vehicle.daily_price;
