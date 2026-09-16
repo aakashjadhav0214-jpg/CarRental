@@ -81,7 +81,7 @@ def get_my_reviews(
             rating=r.rating,
             comment=r.comment,
             user_name=current_user.name or "Verified Customer",
-            vehicle_name=f"{vehicle.make} {vehicle.model}" if vehicle else "Vehicle",
+            vehicle_name=f"{vehicle.brand} {vehicle.model}" if vehicle else "Vehicle",
             created_at=r.created_at
         ))
     return results
@@ -103,7 +103,7 @@ def get_public_reviews(
             rating=r.rating,
             comment=r.comment,
             user_name=u.name if u else "Satisfied Rider",
-            vehicle_name=f"{v.make} {v.model}" if v else "Rental Ride",
+            vehicle_name=f"{v.brand} {v.model}" if v else "Rental Ride",
             created_at=r.created_at
         ))
     return results
@@ -126,7 +126,7 @@ def get_all_reviews_admin(
             rating=r.rating,
             comment=r.comment,
             user_name=u.name if u else "Customer",
-            vehicle_name=f"{v.make} {v.model}" if v else "Vehicle",
+            vehicle_name=f"{v.brand} {v.model}" if v else "Vehicle",
             created_at=r.created_at
         ))
     return results
