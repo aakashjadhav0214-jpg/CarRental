@@ -29,12 +29,23 @@ export const AdminBookings = () => {
     }
   };
 
+  const handleSettleBalance = async (bookingId: string) => {
+    if (!window.confirm('Mark remaining balance as collected and fully paid for this customer?')) return;
+    try {
+      await api.post(`/payments/settle-balance/${bookingId}`);
+      alert('Balance settled successfully! Customer booking marked fully paid.');
+      fetchBookings();
+    } catch (err: any) {
+      alert(err.response?.data?.detail || 'Failed to settle balance');
+    }
+  };
+
   return (
     <div className="max-w-6xl mx-auto space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-white">Manage Bookings</h1>
-          <p className="text-xs text-slate-400 mt-1">View customer contact numbers, update trip statuses &amp; initiate direct calls or WhatsApp chats.</p>
+          <h1 className="text-3xl font-extrabold tracking-tight text-white">Manage Bookings &amp; Customer Ledger</h1>
+          <p className="text-xs text-slate-400 mt-1">View customer contact details, advance paid, balance due &amp; settle rental balances.</p>
         </div>
         <button 
           onClick={fetchBookings}
@@ -50,11 +61,11 @@ export const AdminBookings = () => {
             <thead className="bg-slate-900/80 text-slate-400 border-b border-slate-800 uppercase tracking-wider text-xs">
               <tr>
                 <th className="px-6 py-4 font-bold">Booking ID</th>
-                <th className="px-6 py-4 font-bold">Customer Contact Info</th>
+                <th className="px-6 py-4 font-bold">Customer Info</th>
                 <th className="px-6 py-4 font-bold">Dates &amp; Duration</th>
-                <th className="px-6 py-4 font-bold">Amount</th>
+                <th className="px-6 py-4 font-bold">Payment (Advance &amp; Balance)</th>
                 <th className="px-6 py-4 font-bold text-center">Contact Customer</th>
-                <th className="px-6 py-4 font-bold text-right">Status Action</th>
+                <th className="px-6 py-4 font-bold text-right">Status &amp; Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800">
@@ -66,6 +77,12 @@ export const AdminBookings = () => {
                 bookings.map(b => {
                   const phoneNum = b.user?.phone || '7259857486';
                   const cleanPhone = phoneNum.replace(/[^0-9]/g, '');
+                  
+                  const advanceVal = b.advance_paid ?? (b.payment_status === 'PAID' ? b.total_amount : 0);
+                  const balanceVal = b.balance_due ?? (b.payment_status === 'PAID' ? 0 : (b.total_amount - advanceVal));
+
+                  const isCancelled = b.booking_status === 'CANCELLED';
+                  const waMsg = `Hello ${b.user?.name || 'Customer'}, this is Shri Krishna Rentals regarding your booking #${b.booking_number || b.id.substring(0,8)}. Total: ₹${b.total_amount}, Advance Paid: ₹${advanceVal}, Balance Due at Pickup: ₹${balanceVal}.`;
 
                   return (
                     <tr key={b.id} className="hover:bg-slate-800/30 transition-colors">
@@ -96,11 +113,24 @@ export const AdminBookings = () => {
                         </div>
                       </td>
 
-                      {/* Amount */}
-                      <td className="px-6 py-4 font-black text-white text-base">
-                        ₹{b.total_amount}
-                        <span className={`block text-[10px] font-bold uppercase mt-0.5 px-1.5 py-0.5 rounded w-fit ${
-                          b.payment_status === 'PAID' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'
+                      {/* Amount: Advance & Balance Breakdown for each customer */}
+                      <td className="px-6 py-4 text-xs">
+                        <div className="font-black text-white text-base">₹{b.total_amount} <span className="text-[10px] text-slate-400 font-normal">Total</span></div>
+                        <div className="text-emerald-400 font-bold text-[11px] mt-0.5">
+                          Advance Paid: ₹{advanceVal}
+                        </div>
+                        {balanceVal > 0 ? (
+                          <div className="text-amber-400 font-extrabold text-[11px] mt-0.5">
+                            Balance Due: ₹{balanceVal}
+                          </div>
+                        ) : (
+                          <div className="text-emerald-300 font-semibold text-[10px] mt-0.5">✓ Fully Paid</div>
+                        )}
+                        <span className={`inline-block text-[10px] font-extrabold uppercase mt-1.5 px-2 py-0.5 rounded border ${
+                          b.payment_status === 'PAID' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                          b.payment_status === 'ADVANCE_PAID' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                          b.payment_status === 'PENDING_VERIFICATION' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                          'bg-slate-800 text-slate-400 border-slate-700'
                         }`}>
                           {b.payment_status}
                         </span>
@@ -108,7 +138,7 @@ export const AdminBookings = () => {
 
                       {/* Direct Customer Phone & WhatsApp */}
                       <td className="px-6 py-4">
-                        <div className="flex flex-col gap-1.5">
+                        <div className="flex flex-col gap-1.5 items-center">
                           <div className="flex items-center gap-2 bg-slate-900/90 px-3 py-1.5 rounded-lg border border-slate-700/80 w-fit">
                             <Phone size={13} className="text-emerald-400 shrink-0" />
                             <span className="font-mono text-xs font-extrabold text-white tracking-wide select-all">
@@ -128,7 +158,7 @@ export const AdminBookings = () => {
                           </div>
 
                           <a 
-                            href={`https://wa.me/${cleanPhone.length === 10 ? '91' + cleanPhone : cleanPhone}?text=Hello%20${encodeURIComponent(b.user?.name || '')}%2C%20this%20is%20Shri%20Krishna%20Car%20%26%20Bike%20Rentals%20regarding%20booking%20%23${encodeURIComponent(b.booking_number || b.id.substring(0,8))}.`}
+                            href={`https://wa.me/${cleanPhone.length === 10 ? '91' + cleanPhone : cleanPhone}?text=${encodeURIComponent(waMsg)}`}
                             target="_blank"
                             rel="noreferrer"
                             className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all w-fit shadow-xs"
@@ -139,12 +169,12 @@ export const AdminBookings = () => {
                         </div>
                       </td>
 
-                      {/* Status Action */}
-                      <td className="px-6 py-4 text-right">
+                      {/* Status Action & Balance Settlement */}
+                      <td className="px-6 py-4 text-right space-y-2">
                         <select 
                           value={b.booking_status}
                           onChange={(e) => handleStatusChange(b.id, e.target.value)}
-                          className="px-3 py-2 border border-slate-700 rounded-lg text-xs bg-slate-900 text-white font-bold focus:outline-none focus:border-emerald-500"
+                          className="px-3 py-2 border border-slate-700 rounded-lg text-xs bg-slate-900 text-white font-bold focus:outline-none focus:border-emerald-500 block ml-auto"
                         >
                           <option value="PENDING">Pending</option>
                           <option value="CONFIRMED">Confirmed</option>
@@ -152,6 +182,16 @@ export const AdminBookings = () => {
                           <option value="COMPLETED">Completed</option>
                           <option value="CANCELLED">Cancelled</option>
                         </select>
+
+                        {balanceVal > 0 && !isCancelled && (
+                          <button
+                            onClick={() => handleSettleBalance(b.id)}
+                            className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-extrabold text-xs transition-colors shadow-xs block ml-auto"
+                            title="Collect remaining balance at pickup"
+                          >
+                            Settle ₹{balanceVal}
+                          </button>
+                        )}
                       </td>
                     </tr>
                   );
