@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ShieldCheck, ArrowLeft } from 'lucide-react';
+import { ShieldCheck, ArrowLeft, AlertCircle } from 'lucide-react';
 
 export const Terms = () => {
   return (
@@ -17,6 +17,19 @@ export const Terms = () => {
             <span className="text-xs font-bold uppercase tracking-wider text-emerald-600">Legal Agreement</span>
             <h1 className="text-3xl font-extrabold text-slate-900 mt-1">Terms & Conditions</h1>
             <p className="text-xs text-slate-500 mt-1">Last updated: September 2026 &bull; Shri Krishna Car & Bike Rentals</p>
+          </div>
+
+          {/* Highlighted Damage & Insurance Policy Notice */}
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 sm:p-5 flex items-start gap-3.5">
+            <AlertCircle size={22} className="text-amber-600 shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <span className="text-xs font-black uppercase tracking-wider text-amber-900 block">
+                Important Damage &amp; Insurance Policy
+              </span>
+              <p className="text-xs sm:text-sm font-semibold text-amber-800 leading-relaxed">
+                For any vehicle damages costing <b>under ₹20,000</b>, the customer is fully in-charge of repairing it and bearing the cost. Damages costing <b>above ₹20,000</b> will be claimed through vehicle insurance.
+              </p>
+            </div>
           </div>
 
           <div className="space-y-6 text-sm text-slate-600 leading-relaxed">
@@ -39,6 +52,10 @@ export const Terms = () => {
               <p>
                 A refundable security deposit is collected before vehicle handover. The deposit will be processed for refund within 24 hours of safe vehicle return after inspection. The renter is strictly liable for any damage, loss, traffic fines, or toll violations incurred during the rental tenure.
               </p>
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-xs text-slate-700 font-medium mt-2 space-y-1">
+                <p><b>• Repairs Under ₹20,000:</b> Customer takes full charge of repairing any damage up to ₹20,000.</p>
+                <p><b>• Repairs Above ₹20,000:</b> Damage expenses exceeding ₹20,000 will be processed through vehicle insurance.</p>
+              </div>
             </section>
 
             <section className="space-y-2">

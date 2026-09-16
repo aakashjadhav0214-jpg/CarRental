@@ -4,7 +4,7 @@ import {
   Car, Bike, 
   MapPin, Calendar, Clock, ArrowRight, ShieldCheck, 
   CheckCircle2, Users, Fuel, Gauge, Phone, ChevronDown, 
-  FileText, Tag, Award, HelpCircle, Star
+  FileText, Tag, Award, HelpCircle, Star, AlertCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../api/axios';
@@ -118,6 +118,10 @@ export const Home = () => {
     {
       q: 'What is the daily kilometer limit for self-drive vehicles?',
       a: 'We offer a generous daily limit of 300 km per rental day. Any additional distance driven beyond this allowance is charged at a minimal flat rate of ₹12 to ₹15 per km depending on vehicle category.'
+    },
+    {
+      q: 'What is the damage and insurance policy for vehicles?',
+      a: 'Any vehicle damages costing under ₹20,000 must be repaired directly by the customer taking full in-charge. Damages costing above ₹20,000 will be claimed through vehicle insurance as per policy guidelines.'
     },
     {
       q: 'What documents are required to rent a car or bike?',
@@ -700,6 +704,19 @@ export const Home = () => {
             <p className="text-slate-500 text-sm mt-2">
               Everything you need to know about renting a vehicle in Hassan with us.
             </p>
+          </div>
+
+          {/* Highlighted Damage & Insurance Policy Banner */}
+          <div className="mb-8 bg-amber-50 border border-amber-200 rounded-2xl p-5 flex items-start gap-3.5 shadow-2xs">
+            <AlertCircle size={22} className="text-amber-600 shrink-0 mt-0.5" />
+            <div className="space-y-1 text-left">
+              <span className="text-xs font-black uppercase tracking-wider text-amber-900 block">
+                Important Damage &amp; Insurance Repair Policy
+              </span>
+              <p className="text-xs sm:text-sm font-semibold text-amber-800 leading-relaxed">
+                For any vehicle damages costing <b>under ₹20,000</b>, the customer is fully in-charge of repairing it and bearing the cost. Damages costing <b>above ₹20,000</b> will be claimed through vehicle insurance as per standard policy guidelines.
+              </p>
+            </div>
           </div>
 
           <div className="space-y-3">

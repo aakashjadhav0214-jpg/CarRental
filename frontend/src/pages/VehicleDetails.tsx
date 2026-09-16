@@ -456,7 +456,21 @@ export const VehicleDetails = () => {
               <h3 className="font-extrabold text-base text-slate-900 flex items-center gap-2">
                 <FileText size={18} className="text-emerald-600" /> Important Rental Guidelines
               </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs text-slate-600">
+
+              {/* Damage & Insurance Policy Notice */}
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+                <AlertCircle size={20} className="text-amber-600 shrink-0 mt-0.5" />
+                <div className="space-y-0.5">
+                  <span className="text-xs font-black uppercase tracking-wider text-amber-900 block">
+                    Important Damage &amp; Repair Policy
+                  </span>
+                  <p className="text-xs font-semibold text-amber-800 leading-relaxed">
+                    Any vehicle damages costing <b>under ₹20,000</b> must be repaired directly by the customer taking full in-charge. Damages costing <b>above ₹20,000</b> will be claimed through vehicle insurance.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs text-slate-600 pt-2">
                 <div className="space-y-1">
                   <b className="text-slate-800 block">Required Documents:</b>
                   <p>Original Driving License (DL) &amp; Aadhaar / Govt Photo ID to be presented at handover.</p>
