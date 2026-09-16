@@ -20,10 +20,9 @@ export const AdminSidebar = () => {
 
   return (
     <aside className="w-64 bg-slate-900 text-white min-h-screen flex flex-col shrink-0">
-      <div className="p-5 text-lg font-bold border-b border-slate-800 flex items-center gap-3">
-        <img src="/logo.png" alt="Shri Krishna Rentals Logo" className="w-10 h-10 rounded-full object-cover border border-slate-700 shadow-xs" />
-
-        <span className="leading-tight">Shri Krishna Admin</span>
+      <div className="px-4 py-5 text-lg font-bold border-b border-slate-800 flex items-center gap-3">
+        <img src="/logo.png" alt="Shri Krishna Rentals Logo" className="w-10 h-10 rounded-full object-cover border border-slate-700 shadow-xs shrink-0" />
+        <span className="leading-normal flex-1">Shri Krishna Admin</span>
       </div>
       <nav className="flex-1 p-4 space-y-2">
         {links.map((link) => (
@@ -38,12 +37,13 @@ export const AdminSidebar = () => {
           </NavLink>
         ))}
       </nav>
-      <div className="p-4 border-t border-slate-800">
+      <div className="p-4 pb-6 border-t border-slate-800">
         <button 
           onClick={handleLogout}
-          className="flex items-center justify-center gap-2 text-slate-400 hover:text-white hover:bg-slate-800 w-full py-3 rounded-lg transition-colors"
+          className="flex items-center justify-start gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 w-full rounded-lg transition-colors font-medium"
         >
-          <LogOut size={20} /> Logout
+          <LogOut size={20} />
+          <span>Logout</span>
         </button>
       </div>
     </aside>

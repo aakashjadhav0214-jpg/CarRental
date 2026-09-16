@@ -98,7 +98,7 @@ export const AdminDashboard = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
+    <div className="w-full space-y-8">
       <h1 className="text-3xl font-extrabold tracking-tight text-white mb-8">Dashboard Overview</h1>
       
       {/* Stat Cards Grid */}
@@ -125,10 +125,10 @@ export const AdminDashboard = () => {
           </div>
           <div>
             <p className="text-xs font-bold tracking-wider text-slate-400">Confirmed Bookings</p>
-            <div className="flex items-center gap-2 mt-0.5">
+            <div className="flex items-center gap-3.5 mt-0.5">
               <h2 className="text-2xl font-extrabold text-white">{stats.bookings}</h2>
               {stats.pendingCount > 0 && (
-                <span className="text-xs font-extrabold text-amber-400 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-lg shadow-2xs">
+                <span className="text-xs font-extrabold text-amber-400 bg-amber-500/15 border border-amber-500/30 px-2.5 py-1 rounded-lg shadow-2xs">
                   {stats.pendingCount} Pending
                 </span>
               )}
@@ -197,7 +197,7 @@ export const AdminDashboard = () => {
         {/* Recent Activity Section */}
         <div className="glass-card p-6 rounded-2xl border border-slate-800 flex flex-col">
           <h2 className="text-lg font-bold mb-6 text-white">Recent Activity</h2>
-          <div className="space-y-4 flex-grow overflow-y-auto pr-2">
+          <div className="space-y-1 flex-grow overflow-y-auto pr-2">
             {recentBookings.length === 0 ? (
               <div className="text-center text-slate-500 mt-10">No recent activity</div>
             ) : (
@@ -223,20 +223,22 @@ export const AdminDashboard = () => {
                 }
 
                 return (
-                  <div key={booking.id} className="flex items-center gap-3 py-3 border-b border-slate-800 last:border-0">
+                  <div key={booking.id} className="flex items-center gap-3.5 py-4 border-b border-slate-800/80 last:border-0">
                     <div className="w-10 h-10 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-sm border border-indigo-500/30 shrink-0">
                       {getInitials(booking.user?.name)}
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center flex-wrap gap-2">
-                        <span className="text-sm font-bold text-indigo-300 truncate">{booking.user?.name || "Customer"}</span> 
-                        <span className="text-xs text-slate-400">booked</span> 
-                        <span className="text-sm font-bold text-white truncate">{booking.vehicle?.make || booking.vehicle?.brand} {booking.vehicle?.model}</span>
-                        <span className={`text-[11px] font-bold px-2 py-0.5 border rounded-lg ${statusColor}`}>
-                          {booking.booking_status}
-                        </span>
+                    <div className="min-w-0 flex-1 flex items-center justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center flex-wrap gap-1.5">
+                          <span className="text-sm font-bold text-indigo-300 truncate">{booking.user?.name || "Customer"}</span> 
+                          <span className="text-xs text-slate-400">booked</span> 
+                          <span className="text-sm font-bold text-white truncate">{booking.vehicle?.make || booking.vehicle?.brand} {booking.vehicle?.model}</span>
+                        </div>
+                        <p className="text-xs font-medium text-slate-500 mt-1">#{booking.booking_number} &bull; {timeAgo} &bull; ₹{booking.total_amount}</p>
                       </div>
-                      <p className="text-xs font-medium text-slate-500 mt-0.5">#{booking.booking_number} &bull; {timeAgo} &bull; ₹{booking.total_amount}</p>
+                      <span className={`text-xs font-bold px-2.5 py-1 border rounded-lg shrink-0 ml-auto ${statusColor}`}>
+                        {booking.booking_status}
+                      </span>
                     </div>
                   </div>
                 );
