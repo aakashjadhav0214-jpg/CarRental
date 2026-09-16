@@ -180,13 +180,28 @@ app.add_middleware(
 )
 
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
+app.include_router(auth.router, prefix="/auth", tags=["auth"])
+
 app.include_router(admin_vehicles.router, prefix="/api/admin/vehicles", tags=["admin_vehicles"])
+app.include_router(admin_vehicles.router, prefix="/admin/vehicles", tags=["admin_vehicles"])
+
 app.include_router(vehicles.router, prefix="/api/vehicles", tags=["vehicles"])
+app.include_router(vehicles.router, prefix="/vehicles", tags=["vehicles"])
+
 app.include_router(bookings.router, prefix="/api/bookings", tags=["bookings"])
+app.include_router(bookings.router, prefix="/bookings", tags=["bookings"])
+
 app.include_router(admin_bookings.router, prefix="/api/admin/bookings", tags=["admin_bookings"])
+app.include_router(admin_bookings.router, prefix="/admin/bookings", tags=["admin_bookings"])
+
 app.include_router(payments.router, prefix="/api/payments", tags=["payments"])
+app.include_router(payments.router, prefix="/payments", tags=["payments"])
+
 app.include_router(office.router, prefix="/api/office", tags=["office"])
+app.include_router(office.router, prefix="/office", tags=["office"])
+
 app.include_router(reviews.router, prefix="/api", tags=["reviews"])
+app.include_router(reviews.router, prefix="", tags=["reviews"])
 
 @app.get("/")
 def read_root():
@@ -198,4 +213,8 @@ def read_api_root():
 
 @app.get("/api/health")
 def health_check():
+    return {"status": "ok"}
+
+@app.get("/health")
+def health_check_short():
     return {"status": "ok"}
