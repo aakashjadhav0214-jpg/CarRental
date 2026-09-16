@@ -97,19 +97,19 @@ export const Home = () => {
     {
       title: 'Self Drive Car Rental',
       subtitle: 'Rent & drive it yourself',
-      image: '/uploads/swift.png',
+      image: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&q=80',
       category: 'Cars'
     },
     {
       title: 'Bikes',
       subtitle: 'For city rides & quick getaways',
-      image: '/uploads/ns.webp',
+      image: 'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&q=80',
       category: 'Bikes'
     },
     {
       title: 'Mopeds',
       subtitle: 'Effortless daily commutes',
-      image: '/uploads/activa.webp',
+      image: 'https://images.unsplash.com/photo-1605816988069-b11383b50717?auto=format&fit=crop&q=80',
       category: 'Mopeds/Scooters'
     }
   ];
