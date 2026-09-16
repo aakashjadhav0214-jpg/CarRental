@@ -59,14 +59,14 @@ def check_availability(check: AvailabilityCheck, vehicle_id: str, db: Session = 
     duration = calculate_duration_hours(pickup_dt, return_dt)
     duration_days = max(1, math.ceil(duration / 24))
     base_price = duration_days * vehicle.daily_price
-    gst_amount = base_price * 0.18
-    total_price = base_price + gst_amount + vehicle.security_deposit
+    gst_amount = 0.0
+    total_price = base_price + vehicle.security_deposit
     
     pricing = {
         "duration_hours": duration,
         "duration_days": duration_days,
         "base_price": base_price,
-        "gst_amount": gst_amount,
+        "gst_amount": 0.0,
         "security_deposit": vehicle.security_deposit,
         "total_price": total_price
     }
@@ -220,13 +220,13 @@ def extend_booking(
     duration = calculate_duration_hours(pickup_dt, new_return_dt)
     duration_days = max(1, math.ceil(duration / 24))
     base_price = duration_days * vehicle.daily_price
-    gst_amount = base_price * 0.18
-    total_amount = base_price + gst_amount + vehicle.security_deposit
+    gst_amount = 0.0
+    total_amount = base_price + vehicle.security_deposit
 
     booking.return_datetime = new_return_dt
     booking.duration = duration
     booking.base_price = base_price
-    booking.tax = gst_amount
+    booking.tax = 0.0
     booking.total_amount = total_amount
     booking.deposit = vehicle.security_deposit
 

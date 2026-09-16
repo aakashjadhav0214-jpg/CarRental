@@ -84,15 +84,13 @@ export const VehicleDetails = () => {
     const durationHours = Math.ceil((r - p) / (1000 * 60 * 60));
     const durationDays = Math.max(1, Math.ceil(durationHours / 24));
     const basePrice = durationDays * (vehicle.daily_price || 0);
-    const gstAmount = basePrice * 0.18;
     const deposit = vehicle.security_deposit || 0;
-    const totalPrice = basePrice + gstAmount + deposit;
+    const totalPrice = basePrice + deposit;
 
     return {
       durationHours,
       durationDays,
       basePrice,
-      gstAmount,
       deposit,
       totalPrice
     };
@@ -542,10 +540,6 @@ export const VehicleDetails = () => {
                       <span className="font-semibold text-slate-800">₹{(displayPricing.base_price || displayPricing.basePrice).toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>GST (18%):</span>
-                      <span className="font-semibold text-slate-800">₹{(displayPricing.gst_amount || displayPricing.gstAmount).toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between">
                       <span>Refundable Security Deposit:</span>
                       <span className="font-semibold text-slate-800">₹{(displayPricing.security_deposit || displayPricing.deposit).toFixed(2)}</span>
                     </div>
@@ -608,16 +602,6 @@ export const VehicleDetails = () => {
                     className="w-full py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all border border-slate-200 active:scale-[0.99]"
                   >
                     <Banknote size={17} /> Reserve Now, Pay Cash on Pickup
-                  </button>
-
-                  {/* Option 3: Razorpay Payment Gateway */}
-                  <button 
-                    type="button"
-                    disabled={isProcessing}
-                    onClick={() => handleInitiateCheckout('ONLINE')}
-                    className="w-full py-2.5 px-4 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-600 font-bold text-xs flex items-center justify-center gap-2 transition-all border border-slate-200"
-                  >
-                    <span>Razorpay Online Gateway</span>
                   </button>
                 </div>
               )}

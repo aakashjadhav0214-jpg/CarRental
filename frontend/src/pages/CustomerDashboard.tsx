@@ -369,7 +369,7 @@ export const CustomerDashboard = () => {
                 Extend Trip #{extendModalBooking.booking_number}
               </h3>
               <p className="text-xs text-slate-500 mt-1">
-                Select your new extended drop-off date &amp; time. Additional day charges &amp; GST will be updated automatically.
+                Select your new extended drop-off date &amp; time. Additional day rental charges will be updated automatically.
               </p>
             </div>
 

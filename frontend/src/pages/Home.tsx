@@ -250,7 +250,7 @@ export const Home = () => {
                 <div className="flex items-center gap-3">
                   <FileText size={18} className="text-emerald-600 shrink-0" />
                   <div>
-                    <span className="font-extrabold text-sm sm:text-base text-slate-900 block">GST Invoice Ready</span>
+                    <span className="font-extrabold text-sm sm:text-base text-slate-900 block">Instant Confirmation</span>
                     <span className="text-xs sm:text-[13px] text-slate-500 font-medium">For business expense claim</span>
                   </div>
                 </div>
