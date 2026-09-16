@@ -32,11 +32,16 @@ def auto_migrate():
             pass
 
 auto_migrate()
+create_initial_admin()
+auto_seed_vehicles()
 
 def create_initial_admin():
     db = SessionLocal()
     try:
-        admin = db.query(User).filter(User.role == "ADMIN").first()
+        admin = db.query(User).filter(User.email == settings.ADMIN_EMAIL).first()
+        if not admin:
+            admin = db.query(User).filter(User.role == "ADMIN").first()
+            
         if not admin:
             new_admin = User(
                 name="Shri Krishna Admin",
@@ -47,6 +52,13 @@ def create_initial_admin():
             )
             db.add(new_admin)
             db.commit()
+        else:
+            admin.email = settings.ADMIN_EMAIL
+            admin.password_hash = get_password_hash(settings.ADMIN_PASSWORD)
+            admin.role = "ADMIN"
+            db.commit()
+    except Exception as e:
+        print("Admin seed error:", e)
     finally:
         db.close()
 
