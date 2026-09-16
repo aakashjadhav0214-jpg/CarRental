@@ -148,10 +148,10 @@ export const Home = () => {
           
           {/* Main Title & Subtitle */}
           <div className="text-center max-w-4xl mx-auto mb-10 sm:mb-12">
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs sm:text-sm font-black uppercase tracking-wider text-emerald-800 bg-emerald-100/90 mb-4 border border-emerald-200 shadow-2xs">
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs sm:text-sm font-black tracking-wider text-emerald-800 bg-emerald-100/90 mb-4 border border-emerald-200 shadow-2xs">
               <Award size={15} /> Premier Self-Drive Car &amp; Bike Rentals
             </span>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-slate-900 tracking-tight leading-[1.12]">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-slate-900 tracking-tight leading-[1.12]">
               Rent Self-Drive Cars &amp; Bikes in <span className="text-emerald-600">Hassan</span>
             </h1>
             <p className="mt-4 text-base sm:text-lg md:text-xl text-slate-600 font-semibold max-w-2xl mx-auto">
@@ -636,7 +636,7 @@ export const Home = () => {
       <section className="py-16 sm:py-20 bg-slate-900 text-white border-t border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="text-center max-w-2xl mx-auto mb-12">
-            <span className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider text-amber-300 bg-amber-500/20 border border-amber-500/30">
+            <span className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-black tracking-wider text-amber-300 bg-amber-500/20 border border-amber-500/30">
               <Star size={14} fill="currentColor" /> Verified Customer Feedback
             </span>
             <h2 className="text-3xl sm:text-4xl font-black mt-3 text-white">
@@ -662,7 +662,7 @@ export const Home = () => {
                           <Star key={i} size={15} fill="currentColor" />
                         ))}
                       </div>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                      <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                         Verified Ride
                       </span>
                     </div>
@@ -673,9 +673,9 @@ export const Home = () => {
                   <div className="mt-6 pt-4 border-t border-slate-700/60 flex items-center justify-between text-xs">
                     <div>
                       <b className="text-white block font-extrabold">{r.user_name}</b>
-                      <span className="text-emerald-400 font-semibold text-[11px]">{r.vehicle_name}</span>
+                      <span className="text-emerald-400 font-semibold text-xs">{r.vehicle_name}</span>
                     </div>
-                    <span className="text-[10px] text-slate-400 font-medium">
+                    <span className="text-xs text-slate-400 font-medium">
                       {r.created_at ? new Date(r.created_at).toLocaleDateString() : 'Recent'}
                     </span>
                   </div>

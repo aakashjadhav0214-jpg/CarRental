@@ -67,8 +67,8 @@ export const Footer = () => {
               <span className="text-xl font-extrabold tracking-tight text-white leading-tight">
                 Shri Krishna
               </span>
-              <span className="text-[11px] font-semibold text-emerald-400 tracking-wide">
-                Car & Bike Rentals &bull; Hassan
+              <span className="text-xs font-semibold text-emerald-400 tracking-wide">
+                Car &amp; Bike Rentals &bull; Hassan
               </span>
             </div>
           </Link>
@@ -95,7 +95,7 @@ export const Footer = () => {
 
         {/* Categories Column */}
         <div>
-          <h4 className="text-white font-bold text-sm mb-4 uppercase tracking-wider">Top Categories</h4>
+          <h3 className="text-white font-bold text-sm mb-4 tracking-wider">Top Categories</h3>
           <ul className="space-y-2.5 text-xs">
             <li><Link to="/vehicles?category=Cars" className="hover:text-emerald-400 transition-colors">Self Drive Cars</Link></li>
             <li><Link to="/vehicles?category=Bikes" className="hover:text-emerald-400 transition-colors">Bikes on Rent</Link></li>
@@ -107,7 +107,7 @@ export const Footer = () => {
 
         {/* Quick Links Column */}
         <div>
-          <h4 className="text-white font-bold text-sm mb-4 uppercase tracking-wider">Company</h4>
+          <h3 className="text-white font-bold text-sm mb-4 tracking-wider">Company</h3>
           <ul className="space-y-2.5 text-xs">
             <li><Link to="/" className="hover:text-emerald-400 transition-colors">Home</Link></li>
             <li><Link to="/vehicles" className="hover:text-emerald-400 transition-colors">Fleet Directory</Link></li>
@@ -118,13 +118,13 @@ export const Footer = () => {
 
         {/* Policies & KYC Column (Important for Live Razorpay Compliance) */}
         <div>
-          <h4 className="text-white font-bold text-sm mb-4 uppercase tracking-wider">Policies & Legal</h4>
+          <h3 className="text-white font-bold text-sm mb-4 tracking-wider">Policies &amp; Legal</h3>
           <ul className="space-y-2.5 text-xs">
-            <li><Link to="/terms" className="hover:text-emerald-400 transition-colors">Terms & Conditions</Link></li>
+            <li><Link to="/terms" className="hover:text-emerald-400 transition-colors">Terms &amp; Conditions</Link></li>
             <li><Link to="/privacy" className="hover:text-emerald-400 transition-colors">Privacy Policy</Link></li>
-            <li><Link to="/refund-policy" className="hover:text-emerald-400 transition-colors">Refund & Cancellation</Link></li>
+            <li><Link to="/refund-policy" className="hover:text-emerald-400 transition-colors">Refund &amp; Cancellation</Link></li>
             <li><Link to="/contact" className="hover:text-emerald-400 transition-colors">Contact Us</Link></li>
-            <li><Link to="/terms" className="hover:text-emerald-400 transition-colors">Fuel & Km Policy</Link></li>
+            <li><Link to="/terms" className="hover:text-emerald-400 transition-colors">Fuel &amp; Km Policy</Link></li>
           </ul>
         </div>
 
@@ -134,7 +134,7 @@ export const Footer = () => {
       <div className="border-t border-slate-900 bg-black/40 py-6 text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p>&copy; {new Date().getFullYear()} Shri Krishna Car &amp; Bike Rentals. All rights reserved.</p>
-          <div className="flex items-center gap-4 text-[11px]">
+          <div className="flex items-center gap-4 text-xs">
             <span>Payments Secured with 256-bit SSL</span>
             <span>&bull;</span>
             <span className="text-emerald-400 font-semibold">Verified Razorpay Partner</span>
