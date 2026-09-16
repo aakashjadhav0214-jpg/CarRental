@@ -83,9 +83,9 @@ export const CustomerDashboard = () => {
     try {
       await api.patch(`/bookings/${bookingId}/cancel`);
       setBookings(bookings.map(b => b.id === bookingId ? { ...b, booking_status: 'CANCELLED' } : b));
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert('Failed to cancel booking');
+      alert(err.response?.data?.detail || 'Failed to cancel booking. Please try again.');
     }
   };
 

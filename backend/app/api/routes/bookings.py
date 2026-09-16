@@ -163,12 +163,18 @@ def get_booking(booking_id: str, db: Session = Depends(deps.get_db), current_use
 
 @router.patch("/{booking_id}/cancel", response_model=BookingResponse)
 def cancel_booking(booking_id: str, db: Session = Depends(deps.get_db), current_user: User = Depends(deps.get_current_user)):
-    booking = db.query(Booking).filter(Booking.id == booking_id, Booking.user_id == current_user.id).first()
+    booking = db.query(Booking).filter(Booking.id == booking_id).first()
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
         
-    if booking.booking_status not in ["PENDING", "CONFIRMED"]:
-        raise HTTPException(status_code=400, detail="Cannot cancel an active or completed booking")
+    if current_user.role != "ADMIN" and booking.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to cancel this booking")
+        
+    if booking.booking_status == "CANCELLED":
+        raise HTTPException(status_code=400, detail="Booking is already cancelled")
+        
+    if booking.booking_status == "COMPLETED":
+        raise HTTPException(status_code=400, detail="Cannot cancel a completed booking")
         
     booking.booking_status = "CANCELLED"
     db.commit()
