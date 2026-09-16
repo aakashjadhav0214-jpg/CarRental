@@ -85,6 +85,8 @@ export const AdminDashboard = () => {
       }
     };
     fetchStats();
+    const interval = setInterval(fetchStats, 4000);
+    return () => clearInterval(interval);
   }, []);
 
   // Helper to extract clean 2-letter initials

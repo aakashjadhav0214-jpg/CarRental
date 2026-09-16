@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { CreditCard, TrendingUp, DollarSign } from 'lucide-react';
+import { CreditCard, TrendingUp, DollarSign, RefreshCw } from 'lucide-react';
 import api from '../../api/axios';
 
 export const AdminPayments = () => {
@@ -7,18 +7,21 @@ export const AdminPayments = () => {
   const [loading, setLoading] = useState(true);
   const [gatewayEnabled, setGatewayEnabled] = useState(true);
 
+  const fetchLedger = async () => {
+    try {
+      const res = await api.get('/admin/bookings');
+      setPayments(res.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchLedger = async () => {
-      try {
-        const res = await api.get('/admin/bookings');
-        setPayments(res.data);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchLedger();
+    const interval = setInterval(fetchLedger, 4000);
+    return () => clearInterval(interval);
   }, []);
 
   const activeBookings = payments.filter(p => p.booking_status !== 'CANCELLED');
@@ -74,8 +77,7 @@ export const AdminPayments = () => {
     try {
       await api.post(`/payments/verify-upi/${bookingId}`, { action });
       alert(`Payment ${action === 'APPROVE' ? 'Approved & Confirmed' : 'Rejected'} successfully!`);
-      const res = await api.get('/admin/bookings');
-      setPayments(res.data);
+      fetchLedger();
     } catch (err: any) {
       alert(err.response?.data?.detail || 'Failed to update payment status');
     }
@@ -86,8 +88,7 @@ export const AdminPayments = () => {
     try {
       await api.post(`/payments/settle-balance/${bookingId}`);
       alert('Balance settled successfully! Booking marked fully paid.');
-      const res = await api.get('/admin/bookings');
-      setPayments(res.data);
+      fetchLedger();
     } catch (err: any) {
       alert(err.response?.data?.detail || 'Failed to settle balance');
     }
@@ -106,6 +107,13 @@ export const AdminPayments = () => {
             <p className="text-slate-400">Manage transaction history, advance payments &amp; balance collections.</p>
           </div>
         </div>
+
+        <button 
+          onClick={fetchLedger}
+          className="px-4 py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 text-xs font-bold hover:bg-slate-800 transition-colors flex items-center gap-1.5 shadow-xs"
+        >
+          <RefreshCw size={14} /> Refresh Ledger
+        </button>
       </div>
 
       {/* Stats Row */}

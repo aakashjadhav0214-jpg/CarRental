@@ -17,7 +17,11 @@ export const AdminBookings = () => {
     }
   };
 
-  useEffect(() => { fetchBookings(); }, []);
+  useEffect(() => { 
+    fetchBookings(); 
+    const interval = setInterval(fetchBookings, 4000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleStatusChange = async (bookingId: string, newStatus: string) => {
     try {

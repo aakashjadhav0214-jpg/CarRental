@@ -1,6 +1,6 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_serializer
 from typing import Optional, List, Any
-from datetime import datetime
+from datetime import datetime, timezone
 
 class AvailabilityCheck(BaseModel):
     pickup_datetime: datetime
@@ -27,6 +27,14 @@ class PaymentResponse(BaseModel):
     status: str
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
+
+    @field_serializer('created_at', 'updated_at', mode='plain')
+    def serialize_dt(self, dt: Optional[datetime], _info) -> Optional[str]:
+        if dt is None:
+            return None
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.isoformat()
 
     class Config:
         from_attributes = True
@@ -69,6 +77,14 @@ class BookingResponse(BaseModel):
     payment: Optional[PaymentResponse] = None
     user: Optional[BookingUser] = None
     vehicle: Optional[BookingVehicle] = None
+
+    @field_serializer('pickup_datetime', 'return_datetime', 'created_at', mode='plain')
+    def serialize_dt(self, dt: datetime, _info) -> str:
+        if dt is None:
+            return ""
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.isoformat()
 
     class Config:
         from_attributes = True
