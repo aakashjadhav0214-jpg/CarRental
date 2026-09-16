@@ -71,7 +71,7 @@ export const AdminBookings = () => {
                     <tr key={b.id} className="hover:bg-slate-800/30 transition-colors">
                       <td className="px-6 py-4 font-mono text-slate-300 text-xs">
                         <span className="font-bold text-white block">#{b.booking_number || b.id.substring(0, 8)}</span>
-                        <span className="text-[11px] text-slate-500">{new Date(b.created_at || Date.now()).toLocaleDateString()}</span>
+                        <span className="text-[11px] text-slate-500">{new Date(b.created_at || Date.now()).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: 'numeric' })}</span>
                       </td>
 
                       {/* Customer Info */}
@@ -91,8 +91,8 @@ export const AdminBookings = () => {
                       {/* Dates */}
                       <td className="px-6 py-4 text-xs font-medium text-slate-300">
                         <div className="space-y-0.5">
-                          <p><b>Pickup:</b> {new Date(b.pickup_datetime).toLocaleString()}</p>
-                          <p><b>Return:</b> {new Date(b.return_datetime).toLocaleString()}</p>
+                          <p><b>Pickup:</b> {new Date(b.pickup_datetime).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' })} IST</p>
+                          <p><b>Return:</b> {new Date(b.return_datetime).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' })} IST</p>
                         </div>
                       </td>
 

@@ -234,8 +234,8 @@ export const AdminPayments = () => {
 
                     const utrNumber = p.payment?.gateway_payment_id || 'N/A';
                     const paymentDateObj = p.payment?.created_at ? new Date(p.payment.created_at) : new Date(p.created_at);
-                    const dateStr = paymentDateObj.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-                    const timeStr = paymentDateObj.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+                    const dateStr = paymentDateObj.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: 'numeric' });
+                    const timeStr = paymentDateObj.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true }) + ' IST';
                     
                     return (
                       <tr key={p.id} className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors">
@@ -243,7 +243,7 @@ export const AdminPayments = () => {
                         <td className="p-4 font-bold text-white">{p.user?.name || 'Unknown'}</td>
                         <td className="p-4 text-xs font-semibold text-slate-300">
                           <div className="font-bold text-white">{dateStr}</div>
-                          <div className="text-[11px] text-emerald-400 font-mono font-semibold mt-0.5">{timeStr}</div>
+                          <div className="text-[11px] text-emerald-400 font-mono font-bold mt-0.5">{timeStr}</div>
                         </td>
                         <td className="p-4 font-mono text-xs text-emerald-300 font-bold">{utrNumber}</td>
                         <td className="p-4 font-bold text-white">₹{p.total_amount}</td>

@@ -269,15 +269,15 @@ export const CustomerDashboard = () => {
                       <div className="flex gap-2.5 items-start">
                         <Calendar className="text-emerald-600 shrink-0 mt-0.5" size={15} />
                         <div>
-                          <p className="font-bold text-slate-700">Pickup Date &amp; Time</p>
-                          <p className="text-slate-500 mt-0.5">{new Date(booking.pickup_datetime).toLocaleString()}</p>
+                          <p className="font-bold text-slate-700">Pickup Date &amp; Time (IST)</p>
+                          <p className="text-slate-500 mt-0.5">{new Date(booking.pickup_datetime).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' })} IST</p>
                         </div>
                       </div>
                       <div className="flex gap-2.5 items-start">
                         <MapPin className="text-emerald-600 shrink-0 mt-0.5" size={15} />
                         <div>
-                          <p className="font-bold text-slate-700">Drop-off Date &amp; Time</p>
-                          <p className="text-slate-500 mt-0.5">{new Date(booking.return_datetime).toLocaleString()}</p>
+                          <p className="font-bold text-slate-700">Drop-off Date &amp; Time (IST)</p>
+                          <p className="text-slate-500 mt-0.5">{new Date(booking.return_datetime).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' })} IST</p>
                         </div>
                       </div>
                     </div>
