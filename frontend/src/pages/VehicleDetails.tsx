@@ -329,10 +329,11 @@ export const VehicleDetails = () => {
   const displayPricing = availability?.pricing || calcPricing;
   const upiAmount = displayPricing ? (displayPricing.total_price || displayPricing.totalPrice) : vehicle.daily_price;
   
-  const shopUpiId = "aakashjadhav0214@oksbi";
+  const shopUpiId = "chandankt98.hsn1@ybl";
+  const payeeName = "CHANDAN K T";
   // Standard static UPI link (prompts customer to manually enter amount in GPay / PhonePe / Paytm)
-  const manualUpiLink = `upi://pay?pa=${shopUpiId}&pn=Shri%20Krishna%20Rentals&tn=Rental%20Booking`;
-  const upiDeepLink = `upi://pay?pa=${shopUpiId}&pn=Shri%20Krishna%20Rentals&am=${upiAmount.toFixed(2)}&cu=INR&tn=Rental%20Booking`;
+  const manualUpiLink = `upi://pay?pa=${shopUpiId}&pn=CHANDAN%20K%20T&tn=Rental%20Booking`;
+  const upiDeepLink = `upi://pay?pa=${shopUpiId}&pn=CHANDAN%20K%20T&am=${upiAmount.toFixed(2)}&cu=INR&tn=Rental%20Booking`;
   const fixedAmountQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(manualUpiLink)}`;
 
   return (
@@ -643,7 +644,7 @@ export const VehicleDetails = () => {
               </span>
               <h3 className="text-xl font-black text-slate-900 mt-2">Scan &amp; Pay via GPay / PhonePe</h3>
               <p className="text-xs text-slate-500 font-semibold mt-1">
-                Aakash Dilip Jadhav &bull; Shri Krishna Car &amp; Bike Rentals
+                {payeeName} &bull; Shri Krishna Car &amp; Bike Rentals
               </p>
             </div>
 
@@ -668,7 +669,7 @@ export const VehicleDetails = () => {
               <div className="pt-2.5 border-t border-slate-200 text-xs font-bold text-slate-700 space-y-1">
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-slate-500">Payee Name:</span>
-                  <b className="text-slate-900">Aakash Dilip Jadhav</b>
+                  <b className="text-slate-900">{payeeName}</b>
                 </div>
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-slate-500">Shop UPI ID:</span>
