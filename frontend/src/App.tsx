@@ -1,9 +1,18 @@
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
 import { AdminSidebar } from './components/layout/AdminSidebar';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AnimatePresence, motion } from 'framer-motion';
+
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
+  }, [pathname]);
+  return null;
+};
 
 // Pages
 import { Home } from './pages/Home';
@@ -136,6 +145,7 @@ const MainLayout = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-50 font-sans text-slate-900">
+      <ScrollToTop />
       {!isAdmin && <Navbar />}
       <main className="flex-grow">
         <AnimatedRoutes />
