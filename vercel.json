@@ -20,7 +20,7 @@
     },
     {
       "src": "/uploads/(.*)",
-      "dest": "api/index.py"
+      "dest": "frontend/uploads/$1"
     },
     {
       "src": "/assets/(.*)",
