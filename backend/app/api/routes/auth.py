@@ -2,6 +2,7 @@ from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 from .. import deps
 from ...models.user import User
 from ...schemas.user import UserCreate, UserResponse, Token
@@ -13,7 +14,7 @@ router = APIRouter()
 @router.post("/register", response_model=UserResponse)
 def register(user_in: UserCreate, db: Session = Depends(deps.get_db)):
     # Check if user email exists
-    user_by_email = db.query(User).filter(User.email == user_in.email).first()
+    user_by_email = db.query(User).filter(User.email == user_in.email.strip()).first()
     if user_by_email:
         raise HTTPException(
             status_code=400,
@@ -22,7 +23,8 @@ def register(user_in: UserCreate, db: Session = Depends(deps.get_db)):
         
     # Check if user phone exists
     if user_in.phone:
-        user_by_phone = db.query(User).filter(User.phone == user_in.phone).first()
+        clean_phone = user_in.phone.strip()
+        user_by_phone = db.query(User).filter(User.phone == clean_phone).first()
         if user_by_phone:
             raise HTTPException(
                 status_code=400,
@@ -32,8 +34,8 @@ def register(user_in: UserCreate, db: Session = Depends(deps.get_db)):
     # Create new user, force role to USER (no admin registration via API)
     new_user = User(
         name=user_in.name,
-        email=user_in.email,
-        phone=user_in.phone,
+        email=user_in.email.strip(),
+        phone=user_in.phone.strip() if user_in.phone else None,
         password_hash=get_password_hash(user_in.password),
         role="USER"
     )
@@ -56,7 +58,7 @@ async def login(
     if "application/x-www-form-urlencoded" in content_type or "multipart/form-data" in content_type:
         try:
             form = await request.form()
-            email = form.get("username") or form.get("email")
+            email = form.get("username") or form.get("email") or form.get("phone")
             password = form.get("password")
         except Exception:
             pass
@@ -64,7 +66,7 @@ async def login(
     if not email or not password:
         try:
             body = await request.json()
-            email = body.get("email") or body.get("username")
+            email = body.get("email") or body.get("username") or body.get("phone")
             password = body.get("password")
         except Exception:
             pass
@@ -72,19 +74,26 @@ async def login(
     if not email or not password:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email and password are required"
+            detail="Email/Phone and password are required"
         )
 
-    clean_email = email.strip()
+    clean_input = email.strip()
+    raw_phone = clean_input.replace("+91", "").replace(" ", "").strip()
 
     try:
-        user = db.query(User).filter(User.email == clean_email).first()
+        user = db.query(User).filter(
+            or_(
+                User.email == clean_input,
+                User.phone == clean_input,
+                User.phone == raw_phone
+            )
+        ).first()
     except Exception as e:
         print("DB error on login lookup:", e)
         user = None
 
     # Auto-heal admin user if logging in as configured admin email
-    if not user and clean_email.lower() == settings.ADMIN_EMAIL.lower():
+    if not user and clean_input.lower() == settings.ADMIN_EMAIL.lower():
         try:
             user = User(
                 name="Shri Krishna Admin",
@@ -102,7 +111,7 @@ async def login(
     if not user or not verify_password(password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
+            detail="Incorrect email, phone number, or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
     
@@ -121,11 +130,24 @@ from ...schemas.user import ForgotPasswordRequest, ResetPasswordRequest
 
 @router.post("/forgot-password")
 def forgot_password(req: ForgotPasswordRequest, db: Session = Depends(deps.get_db)):
-    user = db.query(User).filter(User.email == req.email).first()
+    clean_input = req.email.strip()
+    raw_phone = clean_input.replace("+91", "").replace(" ", "").strip()
+
+    user = db.query(User).filter(
+        or_(
+            User.email == clean_input,
+            User.phone == clean_input,
+            User.phone == raw_phone
+        )
+    ).first()
+
+    if not user and clean_input.lower() == settings.ADMIN_EMAIL.lower():
+        user = db.query(User).filter(User.role == "ADMIN").first()
+
     if not user:
         raise HTTPException(
             status_code=404, 
-            detail="No registered user account found with this email. Please check your email or Register."
+            detail="No registered user account found with this email or phone number."
         )
     
     token = str(uuid.uuid4())

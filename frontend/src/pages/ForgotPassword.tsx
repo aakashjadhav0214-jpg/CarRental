@@ -70,15 +70,15 @@ export const ForgotPassword = () => {
                 )}
                 
                 <div className="space-y-2">
-                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">Email Address</label>
+                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">Email Address or Registered Phone Number</label>
                   <div className="relative">
                     <Mail className="absolute left-4 top-3.5 text-slate-500" size={18} />
                     <input 
-                      type="email" 
+                      type="text" 
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="w-full pl-12 pr-4 py-3 bg-slate-900 border border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-white placeholder-slate-600 transition-all"
-                      placeholder="john@example.com"
+                      placeholder="e.g. user@gmail.com or 7259857486"
                       required
                     />
                   </div>

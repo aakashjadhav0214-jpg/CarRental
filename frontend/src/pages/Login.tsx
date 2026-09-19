@@ -65,10 +65,11 @@ export const Login = () => {
           
           <form className="space-y-5" onSubmit={handleLogin}>
             <Input 
-              label="Email Address" 
-              type="email" 
+              label="Email Address or Phone Number" 
+              type="text" 
               value={email}
               onChange={e => setEmail(e.target.value)}
+              placeholder="e.g. user@gmail.com or 7259857486"
               required
             />
             <Input 
