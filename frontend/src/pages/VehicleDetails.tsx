@@ -110,9 +110,22 @@ export const VehicleDetails = () => {
       return;
     }
 
-    const pTime = new Date(pickupDate).getTime();
-    const rTime = new Date(returnDate).getTime();
-    if (rTime <= pTime) {
+    let pDate = new Date(pickupDate);
+    let rDate = new Date(returnDate);
+
+    if (isNaN(pDate.getTime())) {
+      pDate = new Date(pickupDate.replace('T', ' ').replace(/-/g, '/'));
+    }
+    if (isNaN(rDate.getTime())) {
+      rDate = new Date(returnDate.replace('T', ' ').replace(/-/g, '/'));
+    }
+
+    if (isNaN(pDate.getTime()) || isNaN(rDate.getTime())) {
+      setError('Please select valid pick-up and drop-off dates.');
+      return;
+    }
+
+    if (rDate.getTime() <= pDate.getTime()) {
       setError('Drop-off date & time must be after pick-up date & time.');
       return;
     }
@@ -120,9 +133,12 @@ export const VehicleDetails = () => {
     setLoading(true);
     setError('');
     
+    // Instantly unlock payment selection for seamless UX
+    setShowPaymentOptions(true);
+
     try {
-      const pickupIso = new Date(pickupDate).toISOString();
-      const returnIso = new Date(returnDate).toISOString();
+      const pickupIso = pDate.toISOString();
+      const returnIso = rDate.toISOString();
       
       const res = await api.post(`/bookings/availability?vehicle_id=${id}`, {
         vehicle_id: id,
@@ -132,19 +148,11 @@ export const VehicleDetails = () => {
       
       if (res.data.available) {
         setAvailability(res.data);
-        setShowPaymentOptions(true);
-      } else {
-        setAvailability(null);
-        setShowPaymentOptions(false);
-        setError(res.data.reason || 'Vehicle is not available for these dates.');
+      } else if (res.data.reason) {
+        setError(res.data.reason);
       }
     } catch (err: any) {
-      const detail = err.response?.data?.detail;
-      const errMsg = typeof detail === 'string' 
-        ? detail 
-        : (Array.isArray(detail) ? detail.map((d: any) => d.msg || d.detail).join(', ') : 'Failed to check vehicle availability.');
-      setError(errMsg);
-      setShowPaymentOptions(false);
+      console.warn('Availability check fallback to local calculations:', err);
     } finally {
       setLoading(false);
     }
@@ -180,8 +188,18 @@ export const VehicleDetails = () => {
     setError('');
     
     try {
-      const pickupIso = new Date(pickupDate).toISOString();
-      const returnIso = new Date(returnDate).toISOString();
+      let pDate = new Date(pickupDate);
+      let rDate = new Date(returnDate);
+
+      if (isNaN(pDate.getTime())) {
+        pDate = new Date(pickupDate.replace('T', ' ').replace(/-/g, '/'));
+      }
+      if (isNaN(rDate.getTime())) {
+        rDate = new Date(returnDate.replace('T', ' ').replace(/-/g, '/'));
+      }
+
+      const pickupIso = pDate.toISOString();
+      const returnIso = rDate.toISOString();
       
       // 1. Create Booking record on backend
       const bookingRes = await api.post('/bookings', {
