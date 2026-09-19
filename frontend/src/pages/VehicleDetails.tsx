@@ -125,6 +125,7 @@ export const VehicleDetails = () => {
       const returnIso = new Date(returnDate).toISOString();
       
       const res = await api.post(`/bookings/availability?vehicle_id=${id}`, {
+        vehicle_id: id,
         pickup_datetime: pickupIso,
         return_datetime: returnIso
       });
@@ -138,7 +139,11 @@ export const VehicleDetails = () => {
         setError(res.data.reason || 'Vehicle is not available for these dates.');
       }
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Failed to check vehicle availability.');
+      const detail = err.response?.data?.detail;
+      const errMsg = typeof detail === 'string' 
+        ? detail 
+        : (Array.isArray(detail) ? detail.map((d: any) => d.msg || d.detail).join(', ') : 'Failed to check vehicle availability.');
+      setError(errMsg);
       setShowPaymentOptions(false);
     } finally {
       setLoading(false);

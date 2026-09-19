@@ -2,9 +2,9 @@ import uuid
 import math
 import random
 from datetime import datetime, timezone, timedelta
-from fastapi import APIRouter, Depends, HTTPException, status
+from typing import List, Optional
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-from typing import List
 from .. import deps
 from ...models.booking import Booking, Payment
 from ...models.vehicle import Vehicle
@@ -16,7 +16,12 @@ from ...core.pricing import calculate_duration_hours, calculate_pricing
 router = APIRouter()
 
 @router.post("/availability", response_model=AvailabilityResponse)
-def check_availability(check: AvailabilityCheck, vehicle_id: str, db: Session = Depends(deps.get_db)):
+def check_availability(
+    check: AvailabilityCheck, 
+    vehicle_id: Optional[str] = Query(None), 
+    db: Session = Depends(deps.get_db)
+):
+    target_id = vehicle_id or check.vehicle_id
     pickup_dt = check.pickup_datetime
     return_dt = check.return_datetime
     
@@ -30,7 +35,7 @@ def check_availability(check: AvailabilityCheck, vehicle_id: str, db: Session = 
     if pickup_dt >= return_dt:
         return AvailabilityResponse(available=False, reason="Drop-off date/time must be after pickup date/time.")
 
-    vehicle = db.query(Vehicle).filter(Vehicle.id == vehicle_id).first()
+    vehicle = db.query(Vehicle).filter(Vehicle.id == target_id).first() if target_id else None
     if not vehicle:
         vehicle = db.query(Vehicle).filter(Vehicle.status == "AVAILABLE").first()
         
@@ -41,7 +46,7 @@ def check_availability(check: AvailabilityCheck, vehicle_id: str, db: Session = 
         vehicle.status = "AVAILABLE"
         db.commit()
         
-    is_available = check_vehicle_availability(db, vehicle_id, pickup_dt, return_dt)
+    is_available = check_vehicle_availability(db, vehicle.id, pickup_dt, return_dt)
     if not is_available:
         alternatives = []
         similar_vehicles = db.query(Vehicle).filter(

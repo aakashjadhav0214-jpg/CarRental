@@ -3,6 +3,7 @@ from typing import Optional, List, Any
 from datetime import datetime, timezone
 
 class AvailabilityCheck(BaseModel):
+    vehicle_id: Optional[str] = None
     pickup_datetime: datetime
     return_datetime: datetime
 
