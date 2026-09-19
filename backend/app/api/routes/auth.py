@@ -1,11 +1,14 @@
-from datetime import timedelta
-from fastapi import APIRouter, Depends, HTTPException, status
+from datetime import datetime, timedelta
+import uuid
+from typing import Optional
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
+from sqlalchemy.exc import IntegrityError
 from .. import deps
 from ...models.user import User
-from ...schemas.user import UserCreate, UserResponse, Token
+from ...schemas.user import UserCreate, UserResponse, Token, ForgotPasswordRequest, ResetPasswordRequest
 from ...core.security import get_password_hash, verify_password, create_access_token
 from ...config import settings
 
@@ -13,94 +16,117 @@ router = APIRouter()
 
 @router.post("/register", response_model=UserResponse)
 def register(user_in: UserCreate, db: Session = Depends(deps.get_db)):
+    email_clean = user_in.email.strip().lower()
+    phone_clean = user_in.phone.strip() if user_in.phone and user_in.phone.strip() else None
+
     # Check if user email exists
-    user_by_email = db.query(User).filter(User.email == user_in.email.strip()).first()
+    user_by_email = db.query(User).filter(User.email.ilike(email_clean)).first()
     if user_by_email:
         raise HTTPException(
-            status_code=400,
-            detail="A user with this email already exists."
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="A user with this email address already exists. Please log in instead."
         )
         
     # Check if user phone exists
-    if user_in.phone:
-        clean_phone = user_in.phone.strip()
-        user_by_phone = db.query(User).filter(User.phone == clean_phone).first()
+    if phone_clean:
+        raw_phone = phone_clean.replace("+91", "").replace(" ", "").replace("-", "").strip()
+        user_by_phone = db.query(User).filter(
+            or_(
+                User.phone == phone_clean,
+                User.phone == raw_phone,
+                User.phone == f"+91{raw_phone}"
+            )
+        ).first()
         if user_by_phone:
             raise HTTPException(
-                status_code=400,
+                status_code=status.HTTP_400_BAD_REQUEST,
                 detail="This phone number is already registered to another account."
             )
     
-    # Create new user, force role to USER (no admin registration via API)
-    new_user = User(
-        name=user_in.name,
-        email=user_in.email.strip(),
-        phone=user_in.phone.strip() if user_in.phone else None,
-        password_hash=get_password_hash(user_in.password),
-        role="USER"
-    )
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-    return new_user
-
-from fastapi import Request
+    try:
+        new_user = User(
+            name=user_in.name.strip(),
+            email=email_clean,
+            phone=phone_clean,
+            password_hash=get_password_hash(user_in.password),
+            role="USER",
+            created_at=datetime.utcnow()
+        )
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+        return new_user
+    except IntegrityError as ie:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Account registration failed due to duplicate email or phone number."
+        )
+    except Exception as e:
+        db.rollback()
+        print("Registration Error:", e)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Failed to create account: {str(e)}"
+        )
 
 @router.post("/login", response_model=Token)
 async def login(
     request: Request,
     db: Session = Depends(deps.get_db)
 ):
-    email = None
+    email_or_phone = None
     password = None
 
     content_type = request.headers.get("content-type", "")
     if "application/x-www-form-urlencoded" in content_type or "multipart/form-data" in content_type:
         try:
             form = await request.form()
-            email = form.get("username") or form.get("email") or form.get("phone")
+            email_or_phone = form.get("username") or form.get("email") or form.get("phone")
             password = form.get("password")
         except Exception:
             pass
     
-    if not email or not password:
+    if not email_or_phone or not password:
         try:
             body = await request.json()
-            email = body.get("email") or body.get("username") or body.get("phone")
+            email_or_phone = body.get("email") or body.get("username") or body.get("phone")
             password = body.get("password")
         except Exception:
             pass
 
-    if not email or not password:
+    if not email_or_phone or not password:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email/Phone and password are required"
+            detail="Email/Phone and password are required."
         )
 
-    clean_input = email.strip()
-    raw_phone = clean_input.replace("+91", "").replace(" ", "").strip()
+    clean_input = email_or_phone.strip()
+    raw_phone = clean_input.replace("+91", "").replace(" ", "").replace("-", "").strip()
 
+    user = None
     try:
         user = db.query(User).filter(
             or_(
-                User.email == clean_input,
+                User.email.ilike(clean_input),
                 User.phone == clean_input,
-                User.phone == raw_phone
+                User.phone == raw_phone,
+                User.phone == f"+91{raw_phone}"
             )
         ).first()
     except Exception as e:
         print("DB error on login lookup:", e)
-        user = None
 
     # Auto-heal admin user if logging in as configured admin email
     if not user and clean_input.lower() == settings.ADMIN_EMAIL.lower():
         try:
             user = User(
                 name="Shri Krishna Admin",
-                email=settings.ADMIN_EMAIL,
+                email=settings.ADMIN_EMAIL.lower(),
                 phone="7259857486",
                 password_hash=get_password_hash(settings.ADMIN_PASSWORD),
-                role="ADMIN"
+                role="ADMIN",
+                created_at=datetime.utcnow()
             )
             db.add(user)
             db.commit()
@@ -111,7 +137,7 @@ async def login(
     if not user or not verify_password(password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email, phone number, or password",
+            detail="Incorrect email, phone number, or password.",
             headers={"WWW-Authenticate": "Bearer"},
         )
     
@@ -125,19 +151,17 @@ async def login(
 def read_users_me(current_user: User = Depends(deps.get_current_user)):
     return current_user
 
-import uuid
-from ...schemas.user import ForgotPasswordRequest, ResetPasswordRequest
-
 @router.post("/forgot-password")
 def forgot_password(req: ForgotPasswordRequest, db: Session = Depends(deps.get_db)):
     clean_input = req.email.strip()
-    raw_phone = clean_input.replace("+91", "").replace(" ", "").strip()
+    raw_phone = clean_input.replace("+91", "").replace(" ", "").replace("-", "").strip()
 
     user = db.query(User).filter(
         or_(
-            User.email == clean_input,
+            User.email.ilike(clean_input),
             User.phone == clean_input,
-            User.phone == raw_phone
+            User.phone == raw_phone,
+            User.phone == f"+91{raw_phone}"
         )
     ).first()
 
@@ -146,8 +170,8 @@ def forgot_password(req: ForgotPasswordRequest, db: Session = Depends(deps.get_d
 
     if not user:
         raise HTTPException(
-            status_code=404, 
-            detail="No registered user account found with this email or phone number."
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail="No registered user account found with this email or phone number. Please check or Register."
         )
     
     token = str(uuid.uuid4())
@@ -161,9 +185,9 @@ def forgot_password(req: ForgotPasswordRequest, db: Session = Depends(deps.get_d
 
 @router.post("/reset-password")
 def reset_password(req: ResetPasswordRequest, db: Session = Depends(deps.get_db)):
-    user = db.query(User).filter(User.reset_token == req.token).first()
+    user = db.query(User).filter(User.reset_token == req.token.strip()).first()
     if not user:
-        raise HTTPException(status_code=400, detail="Invalid or expired token")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired token")
         
     user.password_hash = get_password_hash(req.new_password)
     user.reset_token = None

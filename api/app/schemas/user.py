@@ -13,7 +13,7 @@ class UserCreate(UserBase):
 class UserResponse(UserBase):
     id: str
     role: str
-    created_at: datetime
+    created_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
@@ -27,7 +27,7 @@ class TokenData(BaseModel):
     role: Optional[str] = None
 
 class ForgotPasswordRequest(BaseModel):
-    email: EmailStr
+    email: str # Can be email or phone number
 
 class ResetPasswordRequest(BaseModel):
     token: str

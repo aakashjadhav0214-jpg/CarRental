@@ -1,40 +1,72 @@
 import hashlib
-import hmac
 from datetime import datetime, timedelta
+from typing import Optional
 from jose import jwt
 from ..config import settings
 
+# Monkeypatch passlib-bcrypt incompatibility for Python 3.12+ / bcrypt 4.x
+try:
+    import bcrypt
+    if not hasattr(bcrypt, "__about__"):
+        class About:
+            __version__ = getattr(bcrypt, "__version__", "4.0.0")
+        bcrypt.__about__ = About()
+except Exception:
+    pass
+
+from passlib.context import CryptContext
+
+try:
+    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+except Exception:
+    pwd_context = None
+
 def get_password_hash(password: str) -> str:
-    salt = settings.JWT_SECRET.encode('utf-8')
-    return hmac.new(salt, password.encode('utf-8'), hashlib.sha256).hexdigest()
+    if not password:
+        password = ""
+    try:
+        if pwd_context:
+            return pwd_context.hash(password)
+    except Exception:
+        pass
+    
+    # Direct bcrypt fallback
+    try:
+        import bcrypt
+        pwd_bytes = password.encode('utf-8')
+        salt = bcrypt.gensalt()
+        hashed = bcrypt.hashpw(pwd_bytes, salt)
+        return hashed.decode('utf-8')
+    except Exception:
+        # SHA256 fallback
+        return "$sha256$" + hashlib.sha256((password + settings.JWT_SECRET).encode('utf-8')).hexdigest()
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    # 1. Primary check: HMAC-SHA256
-    computed = get_password_hash(plain_password)
-    if hmac.compare_digest(computed, hashed_password):
-        return True
+    if not plain_password or not hashed_password:
+        return False
+        
+    if hashed_password.startswith("$sha256$"):
+        expected = "$sha256$" + hashlib.sha256((plain_password + settings.JWT_SECRET).encode('utf-8')).hexdigest()
+        return expected == hashed_password
 
-    # 2. Legacy check: passlib bcrypt (wrapped safely in try/except)
     try:
-        from passlib.context import CryptContext
-        pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-        if pwd_context.verify(plain_password, hashed_password):
-            return True
+        if pwd_context:
+            return pwd_context.verify(plain_password, hashed_password)
     except Exception:
         pass
 
-    # 3. Direct plaintext fallback
-    if plain_password == hashed_password:
-        return True
+    try:
+        import bcrypt
+        return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
+    except Exception:
+        return False
 
-    return False
-
-def create_access_token(data: dict, expires_delta: timedelta | None = None):
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+        expire = datetime.utcnow() + timedelta(minutes=15)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
     return encoded_jwt
