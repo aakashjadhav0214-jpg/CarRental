@@ -33,9 +33,10 @@ def auto_migrate():
             except Exception:
                 pass
 
-auto_migrate()
-create_initial_admin()
-auto_seed_vehicles()
+try:
+    auto_migrate()
+except Exception as e:
+    print("Auto-migrate error:", e)
 
 def create_initial_admin():
     db = SessionLocal()
@@ -424,8 +425,11 @@ def auto_seed_vehicles():
     finally:
         db.close()
 
-create_initial_admin()
-auto_seed_vehicles()
+try:
+    create_initial_admin()
+    auto_seed_vehicles()
+except Exception as e:
+    print("Startup seed error:", e)
 
 app = FastAPI(
     title="Vehicle Rental API",
