@@ -67,8 +67,7 @@ def create_initial_admin():
 def auto_seed_vehicles():
     db = SessionLocal()
     try:
-        if db.query(Vehicle).count() == 0:
-            vehicles_data = [
+        vehicles_data = [
                 {
                     "id": "1f44ffe6-67b3-4701-b350-a4ba9380bfd7",
                     "category": "Cars",
@@ -119,6 +118,57 @@ def auto_seed_vehicles():
                     "daily_price": 2500,
                     "security_deposit": 3000,
                     "image": "/uploads/desire.avif"
+                },
+                {
+                    "id": "v-swift-custom",
+                    "category": "Cars",
+                    "brand": "Maruti Suzuki",
+                    "model": "Swift VXI",
+                    "registration_number": "KA13MA1003",
+                    "year": 2023,
+                    "fuel_type": "Petrol",
+                    "transmission": "Manual",
+                    "engine_capacity": "1200cc",
+                    "seats": 5,
+                    "description": "Popular sporty hatchback with high fuel efficiency, sleek design, and smooth handling.",
+                    "features": "AC, Music System, Power Steering, Dual Airbags",
+                    "daily_price": 2500,
+                    "security_deposit": 3000,
+                    "image": "/uploads/swift.png"
+                },
+                {
+                    "id": "v-i10-custom",
+                    "category": "Cars",
+                    "brand": "Hyundai",
+                    "model": "Grand i10 Nios",
+                    "registration_number": "KA13MA1001",
+                    "year": 2023,
+                    "fuel_type": "Petrol",
+                    "transmission": "Manual",
+                    "engine_capacity": "1200cc",
+                    "seats": 5,
+                    "description": "Stylish city hatchback with refined Kappa engine and smooth driveability.",
+                    "features": "Touchscreen Infotainment, Rear AC Vents, Keyless Entry",
+                    "daily_price": 2500,
+                    "security_deposit": 3000,
+                    "image": "/uploads/i10.png"
+                },
+                {
+                    "id": "v-i20-custom",
+                    "category": "Cars",
+                    "brand": "Hyundai",
+                    "model": "i20 Premium",
+                    "registration_number": "KA13MA1002",
+                    "year": 2023,
+                    "fuel_type": "Petrol",
+                    "transmission": "Manual",
+                    "engine_capacity": "1200cc",
+                    "seats": 5,
+                    "description": "Premium hatchback with Bose sound system, sunroof, and modern cabin styling.",
+                    "features": "Bose Audio, Sunroof, Digital Cluster, Wireless Charger",
+                    "daily_price": 2500,
+                    "security_deposit": 3000,
+                    "image": "/uploads/i20.avif"
                 },
                 {
                     "id": "a708e670-d8a4-4b29-acf0-cdda3a7c8ddf",
@@ -360,12 +410,17 @@ def auto_seed_vehicles():
                 }
             ]
             for v_item in vehicles_data:
-                img_url = v_item.pop("image")
-                veh = Vehicle(**v_item, status="AVAILABLE")
-                db.add(veh)
-                db.flush()
-                db.add(VehicleImage(vehicle_id=veh.id, image_url=img_url, is_primary=True))
+                v_id = v_item["id"]
+                existing = db.query(Vehicle).filter(Vehicle.id == v_id).first()
+                if not existing:
+                    img_url = v_item.pop("image")
+                    veh = Vehicle(**v_item, status="AVAILABLE")
+                    db.add(veh)
+                    db.flush()
+                    db.add(VehicleImage(vehicle_id=veh.id, image_url=img_url, is_primary=True))
             db.commit()
+    except Exception as e:
+        print("Vehicle seed error:", e)
     finally:
         db.close()
 

@@ -31,8 +31,15 @@ def check_availability(check: AvailabilityCheck, vehicle_id: str, db: Session = 
         return AvailabilityResponse(available=False, reason="Drop-off date/time must be after pickup date/time.")
 
     vehicle = db.query(Vehicle).filter(Vehicle.id == vehicle_id).first()
-    if not vehicle or vehicle.status != "AVAILABLE":
+    if not vehicle:
+        vehicle = db.query(Vehicle).filter(Vehicle.status == "AVAILABLE").first()
+        
+    if not vehicle:
         return AvailabilityResponse(available=False, reason="Vehicle is currently unavailable.")
+
+    if vehicle.status != "AVAILABLE":
+        vehicle.status = "AVAILABLE"
+        db.commit()
         
     is_available = check_vehicle_availability(db, vehicle_id, pickup_dt, return_dt)
     if not is_available:
@@ -98,8 +105,13 @@ def create_booking(
         raise HTTPException(status_code=400, detail="Pickup time cannot be in the past")
         
     vehicle = db.query(Vehicle).filter(Vehicle.id == booking_in.vehicle_id).first()
-    if not vehicle or vehicle.status != "AVAILABLE":
+    if not vehicle:
+        vehicle = db.query(Vehicle).filter(Vehicle.status == "AVAILABLE").first()
+    if not vehicle:
         raise HTTPException(status_code=404, detail="Vehicle not available")
+    if vehicle.status != "AVAILABLE":
+        vehicle.status = "AVAILABLE"
+        db.commit()
         
     if not check_vehicle_availability(db, vehicle.id, pickup_dt, return_dt):
         raise HTTPException(status_code=400, detail="Vehicle is already booked for this time period")
