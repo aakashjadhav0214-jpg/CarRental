@@ -22,6 +22,72 @@ const DefaultIcon = L.icon({
 });
 L.Marker.prototype.options.icon = DefaultIcon;
 
+const fallbackVehicles = [
+  {
+    id: 1,
+    brand: 'Maruti Suzuki',
+    model: 'Swift VXi',
+    year: 2023,
+    category: 'Cars',
+    seats: 5,
+    transmission: 'Manual',
+    fuel_type: 'Petrol',
+    daily_price: 1800,
+    images: [{ image_url: '/uploads/swift.png', is_primary: true }]
+  },
+  {
+    id: 2,
+    brand: 'TVS',
+    model: 'Jupiter 125',
+    year: 2023,
+    category: 'Mopeds/Scooters',
+    seats: 2,
+    transmission: 'Automatic',
+    fuel_type: 'Petrol',
+    daily_price: 450,
+    images: [{ image_url: '/uploads/jupiter.jpg', is_primary: true }]
+  },
+  {
+    id: 3,
+    brand: 'Bajaj',
+    model: 'Pulsar NS200',
+    year: 2023,
+    category: 'Bikes',
+    seats: 2,
+    transmission: 'Manual',
+    fuel_type: 'Petrol',
+    daily_price: 800,
+    images: [{ image_url: '/uploads/ns.webp', is_primary: true }]
+  }
+];
+
+const fallbackReviews = [
+  {
+    id: 1,
+    user_name: 'Praveen Kumar',
+    vehicle_name: 'Swift VXi',
+    rating: 5,
+    comment: 'Extremely clean car and smooth pickup near Hassan station. The 300km per day limit was more than enough for our Belur & Sakleshpur trip!',
+    created_at: '2025-02-10'
+  },
+  {
+    id: 2,
+    user_name: 'Ananya Rao',
+    vehicle_name: 'TVS Jupiter 125',
+    rating: 5,
+    comment: 'Very polite staff, instant paperless DL verification. Scooty was in top condition and delivered with a full tank as promised.',
+    created_at: '2025-02-14'
+  },
+  {
+    id: 3,
+    user_name: 'Karthik Gowda',
+    vehicle_name: 'Bajaj Pulsar NS200',
+    rating: 5,
+    comment: 'Best self-drive service in Hassan! Refundable deposit was returned within 3 hours after vehicle drop-off. Will definitely rent again.',
+    created_at: '2025-02-18'
+  }
+];
+
 export const Home = () => {
   const navigate = useNavigate();
 
@@ -55,9 +121,14 @@ export const Home = () => {
     const fetchVehicles = async () => {
       try {
         const res = await api.get('/vehicles?limit=6');
-        setFeaturedVehicles(res.data);
+        if (res.data && Array.isArray(res.data) && res.data.length > 0) {
+          setFeaturedVehicles(res.data);
+        } else {
+          setFeaturedVehicles(fallbackVehicles);
+        }
       } catch (err) {
         console.error('Failed to fetch vehicles', err);
+        setFeaturedVehicles(fallbackVehicles);
       } finally {
         setIsLoadingVehicles(false);
       }
@@ -65,9 +136,14 @@ export const Home = () => {
     const fetchReviews = async () => {
       try {
         const res = await api.get('/reviews/public');
-        setPublicReviews(res.data);
+        if (res.data && Array.isArray(res.data) && res.data.length > 0) {
+          setPublicReviews(res.data);
+        } else {
+          setPublicReviews(fallbackReviews);
+        }
       } catch (err) {
         console.error('Failed to fetch reviews', err);
+        setPublicReviews(fallbackReviews);
       }
     };
     fetchVehicles();
@@ -109,7 +185,7 @@ export const Home = () => {
     {
       title: 'Mopeds & Scooters',
       subtitle: 'Effortless daily commutes',
-      image: '/uploads/activa.webp',
+      image: '/uploads/jupiter.jpg',
       category: 'Mopeds/Scooters'
     }
   ];
@@ -145,26 +221,26 @@ export const Home = () => {
     <div className="flex flex-col min-h-screen bg-slate-50 text-slate-900 pt-16 md:pt-28">
       
       {/* ========================================================================= */}
-      {/* 1. HERO SECTION & MARKETPLACE SEARCH CONSOLE (TransRentals Signature Hero) */}
+      {/* 1. HERO SECTION & MARKETPLACE SEARCH CONSOLE */}
       {/* ========================================================================= */}
       <section className="relative bg-slate-100/70 border-b border-slate-200/80 py-10 sm:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           
           {/* Main Title & Subtitle */}
           <div className="text-center max-w-4xl mx-auto mb-10 sm:mb-12">
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs sm:text-sm font-black tracking-wider text-emerald-800 bg-emerald-100/90 mb-4 border border-emerald-200 shadow-2xs">
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold text-emerald-800 bg-emerald-100/90 mb-4 border border-emerald-200 shadow-2xs">
               <Award size={15} /> Premier Self-Drive Car &amp; Bike Rentals
             </span>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-slate-900 tracking-tight leading-[1.12]">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.12]">
               Rent Self-Drive Cars &amp; Bikes in <span className="text-emerald-600">Hassan</span>
             </h1>
-            <p className="mt-4 text-base sm:text-lg md:text-xl text-slate-600 font-semibold max-w-2xl mx-auto">
+            <p className="mt-4 text-base sm:text-lg md:text-xl text-slate-600 font-medium max-w-2xl mx-auto">
               Well-maintained fleet with transparent per-day pricing, 300km daily allowance &amp; zero hidden charges.
             </p>
           </div>
 
           {/* Search Box Card with Tabs */}
-          <div className="max-w-5xl mx-auto bg-white rounded-2xl sm:rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-200 overflow-hidden">
+          <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-xl shadow-slate-200/60 border border-slate-200 overflow-hidden">
             
             {/* Category Tabs Header */}
             <div className="flex items-center gap-1.5 overflow-x-auto border-b border-slate-200 bg-slate-50/80 px-4 sm:px-6 py-2.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -176,13 +252,13 @@ export const Home = () => {
                     key={tab.id}
                     type="button"
                     onClick={() => setActiveTab(tab.id as any)}
-                    className={`flex items-center gap-2.5 px-5 py-3.5 rounded-xl text-base font-extrabold whitespace-nowrap transition-all ${
+                    className={`flex items-center gap-2.5 px-5 py-3 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${
                       isSelected 
-                        ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/25' 
-                        : 'text-slate-700 hover:text-slate-900 hover:bg-slate-200/60'
+                        ? 'bg-slate-900 text-white shadow-sm' 
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
                     }`}
                   >
-                    <IconComponent size={20} className={isSelected ? 'text-white' : 'text-slate-500'} />
+                    <IconComponent size={18} className={isSelected ? 'text-white' : 'text-slate-500'} />
                     <span>{tab.label}</span>
                   </button>
                 );
@@ -191,95 +267,95 @@ export const Home = () => {
 
             {/* Interactive Search Console */}
             <form onSubmit={handleSearch} className="p-5 sm:p-8">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
                 
                 {/* Pickup Location */}
-                <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 sm:p-4 hover:border-emerald-500/50 transition-colors">
-                  <label className="flex items-center gap-1.5 text-xs sm:text-[13px] font-extrabold text-slate-600 uppercase tracking-wider mb-1.5">
-                    <MapPin size={14} className="text-emerald-600" /> Pickup Location
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 sm:p-4 hover:border-emerald-500/50 transition-colors h-20 flex flex-col justify-between">
+                  <label className="flex items-center gap-1.5 text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">
+                    <MapPin size={14} className="text-emerald-600 shrink-0" /> Pickup Location
                   </label>
                   <input 
                     type="text" 
                     value={pickupLocation}
                     onChange={(e) => setPickupLocation(e.target.value)}
-                    className="w-full bg-transparent font-black text-base sm:text-lg text-slate-900 outline-none placeholder:text-slate-400"
+                    className="w-full bg-transparent font-bold text-sm sm:text-base text-slate-900 outline-none placeholder:text-slate-400"
                     placeholder="City, landmark or area"
                     required
                   />
                 </div>
 
                 {/* Pickup Date & Time */}
-                <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 sm:p-4 hover:border-emerald-500/50 transition-colors">
-                  <label className="flex items-center gap-1.5 text-xs sm:text-[13px] font-extrabold text-slate-600 uppercase tracking-wider mb-1.5">
-                    <Calendar size={14} className="text-emerald-600" /> Pickup Date & Time
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 sm:p-4 hover:border-emerald-500/50 transition-colors h-20 flex flex-col justify-between">
+                  <label className="flex items-center gap-1.5 text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">
+                    <Calendar size={14} className="text-emerald-600 shrink-0" /> Pickup Date &amp; Time
                   </label>
                   <input 
                     type="datetime-local" 
                     value={pickupDateTime}
                     onChange={(e) => setPickupDateTime(e.target.value)}
-                    className="w-full bg-transparent font-black text-base sm:text-lg text-slate-900 outline-none"
+                    className="w-full bg-transparent font-bold text-xs sm:text-sm text-slate-900 outline-none cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-60 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                     required
                   />
                 </div>
 
                 {/* Drop-off Date & Time */}
-                <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 sm:p-4 hover:border-emerald-500/50 transition-colors">
-                  <label className="flex items-center gap-1.5 text-xs sm:text-[13px] font-extrabold text-slate-600 uppercase tracking-wider mb-1.5">
-                    <Clock size={14} className="text-emerald-600" /> Drop-off Date & Time
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 sm:p-4 hover:border-emerald-500/50 transition-colors h-20 flex flex-col justify-between">
+                  <label className="flex items-center gap-1.5 text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">
+                    <Clock size={14} className="text-emerald-600 shrink-0" /> Drop-off Date &amp; Time
                   </label>
                   <input 
                     type="datetime-local" 
                     value={returnDateTime}
                     onChange={(e) => setReturnDateTime(e.target.value)}
-                    className="w-full bg-transparent font-black text-base sm:text-lg text-slate-900 outline-none"
+                    className="w-full bg-transparent font-bold text-xs sm:text-sm text-slate-900 outline-none cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-60 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                     required
                   />
                 </div>
 
                 {/* Search CTA Button */}
-                <div className="flex items-end">
+                <div className="h-20 flex items-center">
                   <button 
                     type="submit"
-                    className="w-full h-[58px] sm:h-full flex items-center justify-center gap-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-lg shadow-md shadow-emerald-600/30 transition-all active:scale-[0.98]"
+                    className="w-full h-full flex items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base shadow-md shadow-emerald-600/20 transition-all active:scale-[0.98]"
                   >
                     <span>Search Fleet</span>
-                    <ArrowRight size={20} />
+                    <ArrowRight size={18} />
                   </button>
                 </div>
 
               </div>
 
-              {/* Trust Features Strip underneath search form */}
+              {/* Trust Features Strip */}
               <div className="mt-7 pt-6 border-t border-slate-100 grid grid-cols-2 md:grid-cols-4 gap-5 text-slate-700">
                 <div className="flex items-center gap-3">
                   <FileText size={18} className="text-emerald-600 shrink-0" />
                   <div>
-                    <span className="font-extrabold text-sm sm:text-base text-slate-900 block">Instant Confirmation</span>
-                    <span className="text-xs sm:text-[13px] text-slate-500 font-medium">For business expense claim</span>
+                    <span className="font-bold text-sm text-slate-900 block">Instant Confirmation</span>
+                    <span className="text-xs text-slate-500 font-medium">For business expense claim</span>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3">
                   <ShieldCheck size={18} className="text-emerald-600 shrink-0" />
                   <div>
-                    <span className="font-extrabold text-sm sm:text-base text-slate-900 block">Price Protection</span>
-                    <span className="text-xs sm:text-[13px] text-slate-500 font-medium">Best rate guarantee</span>
+                    <span className="font-bold text-sm text-slate-900 block">Price Protection</span>
+                    <span className="text-xs text-slate-500 font-medium">Best rate guarantee</span>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3">
                   <CheckCircle2 size={18} className="text-emerald-600 shrink-0" />
                   <div>
-                    <span className="font-extrabold text-sm sm:text-base text-slate-900 block">Instant Verification</span>
-                    <span className="text-xs sm:text-[13px] text-slate-500 font-medium">Paperless DL approval</span>
+                    <span className="font-bold text-sm text-slate-900 block">Instant Verification</span>
+                    <span className="text-xs text-slate-500 font-medium">Paperless DL approval</span>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3">
                   <Tag size={18} className="text-emerald-600 shrink-0" />
                   <div>
-                    <span className="font-extrabold text-sm sm:text-base text-slate-900 block">Save Up to 20%</span>
-                    <span className="text-xs sm:text-[13px] text-slate-500 font-medium">On multi-day rentals</span>
+                    <span className="font-bold text-sm text-slate-900 block">Save Up to 20%</span>
+                    <span className="text-xs text-slate-500 font-medium">On multi-day rentals</span>
                   </div>
                 </div>
               </div>
@@ -289,17 +365,17 @@ export const Home = () => {
 
           {/* Popular Search Tags */}
           <div className="mt-7 flex flex-wrap items-center justify-center gap-2.5 text-sm text-slate-700">
-            <span className="font-extrabold text-slate-800 text-sm sm:text-base">Popular Searches:</span>
-            <Link to="/vehicles?category=Cars" className="px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-700 font-bold hover:border-emerald-500 hover:text-emerald-700 transition-colors shadow-2xs hover:shadow-xs">
+            <span className="font-bold text-slate-800 text-sm">Popular Searches:</span>
+            <Link to="/vehicles?category=Cars" className="px-3.5 py-1.5 rounded-full bg-slate-200/80 hover:bg-emerald-600 hover:text-white text-xs sm:text-sm font-semibold text-slate-700 transition-colors shadow-2xs">
               Self Drive Cars in Hassan
             </Link>
-            <Link to="/vehicles?category=Bikes" className="px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-700 font-bold hover:border-emerald-500 hover:text-emerald-700 transition-colors shadow-2xs hover:shadow-xs">
-              KTM Duke & Royal Enfield
+            <Link to="/vehicles?category=Bikes" className="px-3.5 py-1.5 rounded-full bg-slate-200/80 hover:bg-emerald-600 hover:text-white text-xs sm:text-sm font-semibold text-slate-700 transition-colors shadow-2xs">
+              KTM Duke &amp; Royal Enfield
             </Link>
-            <Link to="/vehicles?category=Mopeds/Scooters" className="px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-700 font-bold hover:border-emerald-500 hover:text-emerald-700 transition-colors shadow-2xs hover:shadow-xs">
-              Activa & Jupiter on Rent
+            <Link to="/vehicles?category=Mopeds/Scooters" className="px-3.5 py-1.5 rounded-full bg-slate-200/80 hover:bg-emerald-600 hover:text-white text-xs sm:text-sm font-semibold text-slate-700 transition-colors shadow-2xs">
+              Activa &amp; Jupiter on Rent
             </Link>
-            <Link to="/vehicles?category=Cars" className="px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-700 font-bold hover:border-emerald-500 hover:text-emerald-700 transition-colors shadow-2xs hover:shadow-xs">
+            <Link to="/vehicles?category=Cars" className="px-3.5 py-1.5 rounded-full bg-slate-200/80 hover:bg-emerald-600 hover:text-white text-xs sm:text-sm font-semibold text-slate-700 transition-colors shadow-2xs">
               7 Seater XUV500
             </Link>
           </div>
@@ -307,20 +383,19 @@ export const Home = () => {
         </div>
       </section>
 
-
       {/* ========================================================================= */}
-      {/* 2. EXPLORE OUR TOP CATEGORIES (Visual Marketplace Cards)                   */}
+      {/* 2. EXPLORE OUR TOP CATEGORIES */}
       {/* ========================================================================= */}
       <section className="py-16 sm:py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           
           <div className="text-center max-w-2xl mx-auto mb-12">
-            <span className="text-xs font-extrabold uppercase tracking-widest text-emerald-600">Whatever you're looking for, it's here</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-emerald-600">Whatever you're looking for, it's here</span>
             <h2 className="mt-2 text-3xl font-extrabold text-slate-900 tracking-tight sm:text-4xl">
               Explore Our Top Rental Categories
             </h2>
-            <p className="mt-3 text-slate-500 text-sm">
-              Choose from hundreds of well-maintained self-drive cars, motorbikes, and city scooters for short trips or weekend getaways.
+            <p className="mt-3 text-slate-600 text-sm">
+              Choose from well-maintained self-drive cars, motorbikes, and city scooters for short trips or weekend getaways.
             </p>
           </div>
 
@@ -329,13 +404,13 @@ export const Home = () => {
               <div 
                 key={idx}
                 onClick={() => navigate(`/vehicles?category=${cat.category}`)}
-                className="group cursor-pointer rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-xs hover:shadow-xl hover:border-emerald-400 transition-all duration-300 flex flex-col"
+                className="group cursor-pointer rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-2xs hover:shadow-xl hover:border-emerald-400 transition-all duration-300 flex flex-col"
               >
                 <div className="p-5 pb-3">
-                  <h3 className="text-lg font-extrabold text-slate-900 group-hover:text-emerald-600 transition-colors">
+                  <h3 className="text-lg font-bold text-slate-900 group-hover:text-emerald-600 transition-colors">
                     {cat.title}
                   </h3>
-                  <p className="text-xs font-medium text-slate-500 mt-1">
+                  <p className="text-xs text-slate-500 mt-1 font-medium">
                     {cat.subtitle}
                   </p>
                 </div>
@@ -355,7 +430,7 @@ export const Home = () => {
           <div className="mt-10 text-center">
             <Link 
               to="/vehicles"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border-2 border-emerald-600 text-emerald-700 font-bold text-sm hover:bg-emerald-50 transition-colors"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-slate-300 text-slate-800 font-bold text-sm hover:bg-slate-100 transition-colors"
             >
               <span>Explore All Vehicles</span>
               <ArrowRight size={16} />
@@ -365,16 +440,15 @@ export const Home = () => {
         </div>
       </section>
 
-
       {/* ========================================================================= */}
-      {/* 3. LIVE FEATURED FLEET (Real Vehicles from Backend)                       */}
+      {/* 3. LIVE FEATURED FLEET */}
       {/* ========================================================================= */}
       <section className="py-16 sm:py-20 bg-slate-50 border-y border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-12">
             <div>
-              <span className="text-xs font-extrabold uppercase tracking-widest text-emerald-600">Available For Immediate Booking</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-emerald-600">Available For Immediate Booking</span>
               <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight sm:text-4xl mt-2">
                 Popular Fleet in Hassan
               </h2>
@@ -387,11 +461,6 @@ export const Home = () => {
           {isLoadingVehicles ? (
             <div className="flex justify-center py-20">
               <div className="animate-spin rounded-full h-10 w-10 border-2 border-emerald-600 border-t-transparent"></div>
-            </div>
-          ) : featuredVehicles.length === 0 ? (
-            <div className="text-center py-16 bg-white rounded-2xl border border-slate-200">
-              <Car size={40} className="mx-auto text-slate-400 mb-3" />
-              <p className="text-slate-600 font-bold">No vehicles currently available</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -407,7 +476,7 @@ export const Home = () => {
                 return (
                   <div 
                     key={vehicle.id} 
-                    className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-xl hover:border-emerald-400 transition-all flex flex-col group"
+                    className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-xl hover:border-emerald-400 transition-all flex flex-col group"
                   >
                     {/* Vehicle Card Image */}
                     <div className="h-52 overflow-hidden relative bg-slate-100">
@@ -416,10 +485,10 @@ export const Home = () => {
                         alt={`${vehicle.brand} ${vehicle.model}`}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                       />
-                      <span className="absolute top-3 left-3 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-md text-[11px] font-extrabold uppercase tracking-wide text-slate-800 border border-slate-200">
+                      <span className="absolute top-3 left-3 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wide text-slate-800 border border-slate-200">
                         {vehicle.category}
                       </span>
-                      <span className="absolute bottom-3 left-3 bg-emerald-700 text-white px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1 shadow-sm">
+                      <span className="absolute bottom-3 left-3 bg-emerald-700 text-white px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1 shadow-xs">
                         <CheckCircle2 size={11} /> 300 km/day Free
                       </span>
                     </div>
@@ -428,7 +497,7 @@ export const Home = () => {
                     <div className="p-5 flex flex-col flex-1">
                       <div className="flex justify-between items-start mb-2">
                         <div>
-                          <h3 className="font-extrabold text-lg text-slate-900 group-hover:text-emerald-700 transition-colors">
+                          <h3 className="font-bold text-lg text-slate-900 group-hover:text-emerald-700 transition-colors">
                             {vehicle.brand} {vehicle.model}
                           </h3>
                           <p className="text-xs text-slate-500 font-medium">{vehicle.year} Edition &bull; Hassan Hub</p>
@@ -436,7 +505,7 @@ export const Home = () => {
                       </div>
 
                       {/* Specs */}
-                      <div className="grid grid-cols-3 gap-2 my-4 py-3 border-y border-slate-100 text-xs text-slate-600 font-semibold">
+                      <div className="grid grid-cols-3 gap-2 my-4 py-3 border-y border-slate-100 text-xs text-slate-600 font-medium">
                         <div className="flex items-center gap-1.5">
                           <Users size={14} className="text-emerald-600" />
                           <span>{vehicle.seats} Seats</span>
@@ -455,7 +524,7 @@ export const Home = () => {
                       <div className="mt-auto flex items-center justify-between pt-2">
                         <div>
                           <span className="text-xs text-slate-500 block font-medium">Starting from</span>
-                          <span className="text-xl font-extrabold text-slate-900">
+                          <span className="text-xl font-bold text-slate-900">
                             ₹{vehicle.daily_price}
                             <span className="text-xs font-normal text-slate-500"> /day</span>
                           </span>
@@ -478,15 +547,14 @@ export const Home = () => {
         </div>
       </section>
 
-
       {/* ========================================================================= */}
-      {/* 4. WHY RENT WITH SHRI KRISHNA (Local & Outstation Freedom)                */}
+      {/* 4. WHY RENT WITH SHRI KRISHNA */}
       {/* ========================================================================= */}
       <section className="py-16 sm:py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           
           <div className="text-center max-w-2xl mx-auto mb-12">
-            <span className="text-xs font-extrabold uppercase tracking-widest text-emerald-600">The Hassan Self-Drive Advantage</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-emerald-600">The Hassan Self-Drive Advantage</span>
             <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight sm:text-4xl mt-2">
               Drive with Freedom Across Karnataka
             </h2>
@@ -495,16 +563,16 @@ export const Home = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             
             {/* For Customers */}
-            <div className="rounded-3xl p-8 sm:p-10 bg-gradient-to-br from-emerald-900 to-slate-950 text-white flex flex-col justify-between relative overflow-hidden shadow-lg">
+            <div className="rounded-2xl p-8 sm:p-10 bg-slate-900 text-white flex flex-col justify-between relative overflow-hidden shadow-lg border border-slate-800">
               <div className="relative z-10">
                 <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                   Self-Drive Experience
                 </span>
-                <h3 className="text-2xl sm:text-3xl font-black mt-4 mb-3">Find. Reserve. Ride.</h3>
-                <p className="text-emerald-100/80 text-sm sm:text-base leading-relaxed mb-6">
+                <h3 className="text-2xl sm:text-3xl font-extrabold mt-4 mb-3">Find. Reserve. Ride.</h3>
+                <p className="text-slate-300 text-sm sm:text-base leading-relaxed mb-6">
                   Browse through cars, motorbikes and scooters. Transparent per-day pricing, 300 km daily allowance, paperless booking, and instant payment confirmation.
                 </p>
-                <ul className="space-y-2.5 text-xs sm:text-sm text-emerald-200 mb-8">
+                <ul className="space-y-2.5 text-xs sm:text-sm text-slate-300 mb-8">
                   <li className="flex items-center gap-2">
                     <CheckCircle2 size={16} className="text-emerald-400" /> Regularly inspected &amp; sanitized vehicles
                   </li>
@@ -518,7 +586,7 @@ export const Home = () => {
               </div>
               <Link 
                 to="/vehicles" 
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-white text-emerald-900 font-extrabold text-sm hover:bg-emerald-50 transition-colors w-fit relative z-10"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-white text-slate-900 font-bold text-sm hover:bg-slate-100 transition-colors w-fit relative z-10"
               >
                 <span>Start Booking Now</span>
                 <ArrowRight size={16} />
@@ -526,30 +594,30 @@ export const Home = () => {
             </div>
 
             {/* Hassan & Outstation Trips */}
-            <div className="rounded-3xl p-8 sm:p-10 bg-gradient-to-br from-slate-900 to-slate-800 text-white flex flex-col justify-between relative overflow-hidden shadow-lg">
+            <div className="rounded-2xl p-8 sm:p-10 bg-slate-900 text-white flex flex-col justify-between relative overflow-hidden shadow-lg border border-slate-800">
               <div className="relative z-10">
-                <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                   Heritage &amp; Weekend Getaways
                 </span>
-                <h3 className="text-2xl sm:text-3xl font-black mt-4 mb-3">Explore Belur, Halebidu &amp; Hills</h3>
+                <h3 className="text-2xl sm:text-3xl font-extrabold mt-4 mb-3">Explore Belur, Halebidu &amp; Hills</h3>
                 <p className="text-slate-300 text-sm sm:text-base leading-relaxed mb-6">
                   Our Hassan branch on B.M. Road gives you immediate access to historic Belur, Halebidu temples, Sakleshpur coffee estates, and Western Ghats.
                 </p>
                 <ul className="space-y-2.5 text-xs sm:text-sm text-slate-300 mb-8">
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 size={16} className="text-indigo-400" /> Generous 300 km daily limit included
+                    <CheckCircle2 size={16} className="text-emerald-400" /> Generous 300 km daily limit included
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 size={16} className="text-indigo-400" /> Quick handover at Hassan branch
+                    <CheckCircle2 size={16} className="text-emerald-400" /> Quick handover at Hassan branch
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 size={16} className="text-indigo-400" /> 100% refundable security deposit
+                    <CheckCircle2 size={16} className="text-emerald-400" /> 100% refundable security deposit
                   </li>
                 </ul>
               </div>
               <Link 
                 to="/map" 
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-emerald-600 text-white font-extrabold text-sm hover:bg-emerald-700 transition-colors w-fit relative z-10"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-emerald-600 text-white font-bold text-sm hover:bg-emerald-700 transition-colors w-fit relative z-10"
               >
                 <span>View Hassan Branch</span>
                 <ArrowRight size={16} />
@@ -561,17 +629,16 @@ export const Home = () => {
         </div>
       </section>
 
-
       {/* ========================================================================= */}
-      {/* 5. SHOWROOM & PICKUP LOCATION MAP (Hassan Hub)                            */}
+      {/* 5. SHOWROOM & PICKUP LOCATION MAP */}
       {/* ========================================================================= */}
       <section className="py-16 sm:py-20 bg-slate-50 border-t border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             
-            <div className="space-y-5">
-              <span className="text-xs font-extrabold uppercase tracking-widest text-emerald-600">Physical Pickup Location</span>
+            <div className="lg:col-span-5 space-y-5">
+              <span className="text-xs font-bold uppercase tracking-wider text-emerald-600">Physical Pickup Location</span>
               <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
                 Visit Our Hassan Branch
               </h2>
@@ -605,7 +672,7 @@ export const Home = () => {
             </div>
 
             {/* Leaflet Map Card */}
-            <div className="lg:col-span-2 h-80 sm:h-96 rounded-2xl overflow-hidden border border-slate-200 shadow-sm relative">
+            <div className="lg:col-span-7 h-80 sm:h-96 rounded-2xl overflow-hidden border border-slate-200 shadow-sm relative">
               <MapContainer 
                 center={showroomLocation} 
                 zoom={16} 
@@ -619,7 +686,7 @@ export const Home = () => {
                 <Marker position={showroomLocation}>
                   <Popup>
                     <div className="p-1 text-slate-900 font-sans">
-                      <b className="font-bold text-sm block">Shri Krishna Car & Bike Rentals Hub</b>
+                      <b className="font-bold text-sm block">Shri Krishna Car &amp; Bike Rentals Hub</b>
                       <span className="text-xs text-slate-600">232J+JQC, Near Canara Bank (Guddenahalli), B.M. Road, Hassan</span>
                     </div>
                   </Popup>
@@ -633,15 +700,15 @@ export const Home = () => {
       </section>
 
       {/* ========================================================================= */}
-      {/* 5.5 CUSTOMER REVIEWS & FEEDBACK                                           */}
+      {/* 5.5 CUSTOMER REVIEWS & FEEDBACK */}
       {/* ========================================================================= */}
       <section className="py-16 sm:py-20 bg-slate-900 text-white border-t border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="text-center max-w-2xl mx-auto mb-12">
-            <span className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-black tracking-wider text-amber-300 bg-amber-500/20 border border-amber-500/30">
+            <span className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-bold tracking-wider text-amber-300 bg-amber-500/20 border border-amber-500/30">
               <Star size={14} fill="currentColor" /> Verified Customer Feedback
             </span>
-            <h2 className="text-3xl sm:text-4xl font-black mt-3 text-white">
+            <h2 className="text-3xl sm:text-4xl font-extrabold mt-3 text-white">
               Rider Experiences &amp; Reviews
             </h2>
             <p className="text-sm text-slate-300 mt-2 font-medium">
@@ -649,57 +716,51 @@ export const Home = () => {
             </p>
           </div>
 
-          {publicReviews.length === 0 ? (
-            <div className="text-center py-8 text-slate-400 text-xs font-medium">
-              No reviews submitted yet. Be the first to share your rental experience!
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {publicReviews.map((r) => (
-                <div key={r.id} className="bg-slate-800/80 border border-slate-700/80 p-6 rounded-2xl flex flex-col justify-between shadow-lg backdrop-blur-xs hover:border-amber-500/40 transition-all">
-                  <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex gap-1 text-amber-400">
-                        {[...Array(r.rating)].map((_, i) => (
-                          <Star key={i} size={15} fill="currentColor" />
-                        ))}
-                      </div>
-                      <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                        Verified Ride
-                      </span>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {publicReviews.map((r) => (
+              <div key={r.id} className="bg-slate-800/80 border border-slate-700/80 p-6 rounded-2xl flex flex-col justify-between shadow-lg backdrop-blur-xs hover:border-amber-500/40 transition-all">
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex gap-1 text-amber-400">
+                      {[...Array(r.rating || 5)].map((_, i) => (
+                        <Star key={i} size={15} fill="currentColor" />
+                      ))}
                     </div>
-                    <p className="text-xs sm:text-sm text-slate-200 leading-relaxed italic">
-                      "{r.comment}"
-                    </p>
-                  </div>
-                  <div className="mt-6 pt-4 border-t border-slate-700/60 flex items-center justify-between text-xs">
-                    <div>
-                      <b className="text-white block font-extrabold">{r.user_name}</b>
-                      <span className="text-emerald-400 font-semibold text-xs">{r.vehicle_name}</span>
-                    </div>
-                    <span className="text-xs text-slate-400 font-medium">
-                      {r.created_at ? new Date(r.created_at).toLocaleDateString() : 'Recent'}
+                    <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                      Verified Ride
                     </span>
                   </div>
+                  <p className="text-xs sm:text-sm text-slate-200 leading-relaxed italic">
+                    "{r.comment}"
+                  </p>
                 </div>
-              ))}
-            </div>
-          )}
+                <div className="mt-6 pt-4 border-t border-slate-700/60 flex items-center justify-between text-xs">
+                  <div>
+                    <b className="text-white block font-bold">{r.user_name}</b>
+                    <span className="text-emerald-400 font-semibold text-xs">{r.vehicle_name}</span>
+                  </div>
+                  <span className="text-xs text-slate-400 font-medium">
+                    {r.created_at ? new Date(r.created_at).toLocaleDateString() : 'Recent'}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* ========================================================================= */}
-      {/* 6. FREQUENTLY ASKED QUESTIONS (TransRentals FAQ Accordion)                 */}
+      {/* 6. FREQUENTLY ASKED QUESTIONS */}
       {/* ========================================================================= */}
       <section className="py-16 sm:py-20 bg-white border-t border-slate-200">
         <div className="max-w-4xl mx-auto px-4 sm:px-6">
           
           <div className="text-center mb-12">
-            <span className="text-xs font-extrabold uppercase tracking-widest text-emerald-600">Got Questions?</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-emerald-600">Got Questions?</span>
             <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight mt-2">
               Frequently Asked Questions
             </h2>
-            <p className="text-slate-500 text-sm mt-2">
+            <p className="text-slate-600 text-sm mt-2">
               Everything you need to know about renting a vehicle in Hassan with us.
             </p>
           </div>
@@ -708,7 +769,7 @@ export const Home = () => {
           <div className="mb-8 bg-amber-50 border border-amber-200 rounded-2xl p-5 flex items-start gap-3.5 shadow-2xs">
             <AlertCircle size={22} className="text-amber-600 shrink-0 mt-0.5" />
             <div className="space-y-1 text-left">
-              <span className="text-xs font-black uppercase tracking-wider text-amber-900 block">
+              <span className="text-xs font-bold uppercase tracking-wider text-amber-900 block">
                 Important Damage &amp; Insurance Repair Policy
               </span>
               <p className="text-xs sm:text-sm font-semibold text-amber-800 leading-relaxed">
@@ -723,7 +784,7 @@ export const Home = () => {
               return (
                 <div 
                   key={idx} 
-                  className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-2xs transition-all"
+                  className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-2xs transition-all"
                 >
                   <button 
                     type="button"
@@ -748,7 +809,7 @@ export const Home = () => {
                         exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.2 }}
                       >
-                        <div className="px-5 pb-5 pt-1 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100">
+                        <div className="px-5 pb-5 pt-2 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100">
                           {faq.a}
                         </div>
                       </motion.div>

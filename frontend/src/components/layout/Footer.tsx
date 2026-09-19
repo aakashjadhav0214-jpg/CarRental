@@ -49,11 +49,11 @@ export const Footer = () => {
         </div>
       </div>
 
-      {/* Main 5-Column Navigation */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10">
+      {/* Main 4-Column Balanced Navigation */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-8">
         
-        {/* Brand Column */}
-        <div className="lg:col-span-2 space-y-4">
+        {/* Brand Column (Issue 16: col-span-4 for balanced gutters) */}
+        <div className="lg:col-span-4 space-y-4">
           <Link to="/" className="flex items-center gap-3.5 group">
             <div className="w-14 h-14 rounded-full overflow-hidden shadow-md shadow-emerald-900/30 border border-emerald-500/30 shrink-0 bg-slate-900">
               <img 
@@ -76,6 +76,7 @@ export const Footer = () => {
             Hassan's trusted vehicle rental platform. Book self-drive cars, motorbikes, and scooters at guaranteed best rates with zero hidden fees.
           </p>
 
+          {/* Issue 6: Functional interactive phone and email links */}
           <div className="space-y-2 pt-2 text-xs">
             <div className="flex items-center gap-2 text-slate-300">
               <MapPin size={14} className="text-emerald-400 shrink-0" />
@@ -83,18 +84,18 @@ export const Footer = () => {
             </div>
             <div className="flex items-center gap-2 text-slate-300">
               <Phone size={14} className="text-emerald-400 shrink-0" />
-              <span>Support: +91 72598 57486 | +91 95133 48666</span>
+              <span>Support: <a href="tel:+917259857486" className="hover:text-emerald-400 hover:underline transition-colors">+91 72598 57486</a> | <a href="tel:+919513348666" className="hover:text-emerald-400 hover:underline transition-colors">+91 95133 48666</a></span>
             </div>
 
             <div className="flex items-center gap-2 text-slate-300">
               <Mail size={14} className="text-emerald-400 shrink-0" />
-              <span>Email: bookings@shrikrishnarentals.com</span>
+              <span>Email: <a href="mailto:bookings@shrikrishnarentals.com" className="hover:text-emerald-400 hover:underline transition-colors">bookings@shrikrishnarentals.com</a></span>
             </div>
           </div>
         </div>
 
         {/* Categories Column */}
-        <div>
+        <div className="lg:col-span-3">
           <h3 className="text-white font-bold text-sm mb-4 tracking-wider">Top Categories</h3>
           <ul className="space-y-2.5 text-xs">
             <li><Link to="/vehicles?category=Cars" className="hover:text-emerald-400 transition-colors">Self Drive Cars</Link></li>
@@ -106,7 +107,7 @@ export const Footer = () => {
         </div>
 
         {/* Quick Links Column */}
-        <div>
+        <div className="lg:col-span-2">
           <h3 className="text-white font-bold text-sm mb-4 tracking-wider">Company</h3>
           <ul className="space-y-2.5 text-xs">
             <li><Link to="/" className="hover:text-emerald-400 transition-colors">Home</Link></li>
@@ -116,8 +117,8 @@ export const Footer = () => {
           </ul>
         </div>
 
-        {/* Policies & KYC Column (Important for Live Razorpay Compliance) */}
-        <div>
+        {/* Policies & KYC Column */}
+        <div className="lg:col-span-3">
           <h3 className="text-white font-bold text-sm mb-4 tracking-wider">Policies &amp; Legal</h3>
           <ul className="space-y-2.5 text-xs">
             <li><Link to="/terms" className="hover:text-emerald-400 transition-colors">Terms &amp; Conditions</Link></li>
@@ -137,7 +138,8 @@ export const Footer = () => {
           <div className="flex items-center gap-4 text-xs">
             <span>Payments Secured with 256-bit SSL</span>
             <span>&bull;</span>
-            <span className="text-emerald-400 font-semibold">Verified Rental Partner</span>
+            {/* Issue 7: Muted text color for secondary trust badge */}
+            <span className="text-slate-400 font-medium">Verified Rental Partner</span>
           </div>
         </div>
       </div>
