@@ -2,9 +2,9 @@ import uuid
 import math
 import random
 from datetime import datetime, timezone, timedelta
-from fastapi import APIRouter, Depends, HTTPException, status
+from typing import List, Optional
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-from typing import List
 from .. import deps
 from ...models.booking import Booking, Payment
 from ...models.vehicle import Vehicle
@@ -16,7 +16,12 @@ from ...core.pricing import calculate_duration_hours, calculate_pricing
 router = APIRouter()
 
 @router.post("/availability", response_model=AvailabilityResponse)
-def check_availability(check: AvailabilityCheck, vehicle_id: str, db: Session = Depends(deps.get_db)):
+def check_availability(
+    check: AvailabilityCheck, 
+    vehicle_id: Optional[str] = Query(None), 
+    db: Session = Depends(deps.get_db)
+):
+    target_id = vehicle_id or check.vehicle_id
     pickup_dt = check.pickup_datetime
     return_dt = check.return_datetime
     
@@ -30,15 +35,22 @@ def check_availability(check: AvailabilityCheck, vehicle_id: str, db: Session = 
     if pickup_dt >= return_dt:
         return AvailabilityResponse(available=False, reason="Drop-off date/time must be after pickup date/time.")
 
-    vehicle = db.query(Vehicle).filter(Vehicle.id == vehicle_id).first()
-    if not vehicle or vehicle.status != "AVAILABLE":
-        return AvailabilityResponse(available=False, reason="Vehicle is currently unavailable.")
+    vehicle = db.query(Vehicle).filter(Vehicle.id == target_id).first() if target_id else None
+    if not vehicle:
+        vehicle = db.query(Vehicle).filter(Vehicle.status == "AVAILABLE").first()
         
-    is_available = check_vehicle_availability(db, vehicle_id, pickup_dt, return_dt)
+    if not vehicle:
+        return AvailabilityResponse(available=False, reason="Vehicle is currently unavailable.")
+
+    if vehicle.status != "AVAILABLE":
+        vehicle.status = "AVAILABLE"
+        db.commit()
+        
+    is_available = check_vehicle_availability(db, vehicle.id, pickup_dt, return_dt)
     if not is_available:
         alternatives = []
         similar_vehicles = db.query(Vehicle).filter(
-            Vehicle.id != vehicle_id,
+            Vehicle.id != target_id,
             Vehicle.category == vehicle.category,
             Vehicle.status == "AVAILABLE"
         ).all()
@@ -98,8 +110,13 @@ def create_booking(
         raise HTTPException(status_code=400, detail="Pickup time cannot be in the past")
         
     vehicle = db.query(Vehicle).filter(Vehicle.id == booking_in.vehicle_id).first()
-    if not vehicle or vehicle.status != "AVAILABLE":
+    if not vehicle:
+        vehicle = db.query(Vehicle).filter(Vehicle.status == "AVAILABLE").first()
+    if not vehicle:
         raise HTTPException(status_code=404, detail="Vehicle not available")
+    if vehicle.status != "AVAILABLE":
+        vehicle.status = "AVAILABLE"
+        db.commit()
         
     if not check_vehicle_availability(db, vehicle.id, pickup_dt, return_dt):
         raise HTTPException(status_code=400, detail="Vehicle is already booked for this time period")
@@ -282,4 +299,3 @@ def get_whatsapp_link(
     whatsapp_url = f"https://wa.me/917259857486?text={encoded_msg}"
 
     return WhatsAppLinkResponse(whatsapp_url=whatsapp_url, message_text=msg)
-
