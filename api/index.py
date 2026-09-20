@@ -11,11 +11,17 @@ if parent_dir not in sys.path:
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from app.api.routes import auth, admin_vehicles, vehicles, bookings, admin_bookings, payments, office, reviews
-from app.database import engine, Base, SessionLocal
-from app.models import User, Vehicle, VehicleImage, Booking, Payment, Office, Review
-from app.core.security import get_password_hash
-from app.config import settings
+
+IMPORT_ERROR = None
+try:
+    from app.api.routes import auth, admin_vehicles, vehicles, bookings, admin_bookings, payments, office, reviews
+    from app.database import engine, Base, SessionLocal
+    from app.models import User, Vehicle, VehicleImage, Booking, Payment, Office, Review
+    from app.core.security import get_password_hash
+    from app.config import settings
+except Exception as _err:
+    import traceback
+    IMPORT_ERROR = f"{type(_err).__name__}: {_err}\n{traceback.format_exc()}"
 
 _db_initialized = False
 
@@ -452,6 +458,11 @@ def on_startup():
 
 @app.middleware("http")
 async def ensure_db_initialized(request: Request, call_next):
+    if IMPORT_ERROR:
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "Top-level python import error on Vercel", "error": IMPORT_ERROR}
+        )
     if not _db_initialized:
         init_db_once()
     response = await call_next(request)
