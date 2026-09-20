@@ -525,3 +525,10 @@ def health_check():
 @app.get("/health")
 def health_check_short():
     return {"status": "ok"}
+
+try:
+    from mangum import Mangum
+    handler = Mangum(app, lifespan="off")
+except Exception:
+    handler = app
+

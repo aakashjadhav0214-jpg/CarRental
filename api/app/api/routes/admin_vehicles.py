@@ -12,14 +12,17 @@ router = APIRouter()
 
 @router.post("/upload")
 async def upload_image(file: UploadFile = File(...), current_admin = Depends(deps.get_current_admin_user)):
-    ext = file.filename.split(".")[-1]
+    ext = file.filename.split(".")[-1] if "." in file.filename else "jpg"
     filename = f"{uuid.uuid4()}.{ext}"
-    filepath = os.path.join("uploads", filename)
+    upload_dir = "/tmp/uploads" if (os.getenv("VERCEL") or os.getenv("VERCEL_ENV")) else "uploads"
+    os.makedirs(upload_dir, exist_ok=True)
+    filepath = os.path.join(upload_dir, filename)
     
     with open(filepath, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
         
     return {"url": f"/uploads/{filename}"}
+
 
 @router.post("/", response_model=VehicleResponse, status_code=status.HTTP_201_CREATED)
 def create_vehicle(
