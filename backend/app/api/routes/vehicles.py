@@ -15,19 +15,29 @@ def get_vehicles(
     limit: int = Query(100, le=100),
     db: Session = Depends(deps.get_db)
 ):
-    query = db.query(Vehicle)
-    
-    if category:
-        query = query.filter(Vehicle.category == category)
-    if status:
-        query = query.filter(Vehicle.status == status)
+    try:
+        query = db.query(Vehicle)
         
-    vehicles = query.offset(skip).limit(limit).all()
-    return vehicles
+        if category:
+            query = query.filter(Vehicle.category == category)
+        if status:
+            query = query.filter(Vehicle.status == status)
+            
+        vehicles = query.offset(skip).limit(limit).all()
+        return vehicles
+    except Exception as e:
+        print("Error fetching vehicles:", e)
+        return []
 
 @router.get("/{vehicle_id}", response_model=VehicleResponse)
 def get_vehicle(vehicle_id: str, db: Session = Depends(deps.get_db)):
-    vehicle = db.query(Vehicle).filter(Vehicle.id == vehicle_id).first()
-    if not vehicle:
+    try:
+        vehicle = db.query(Vehicle).filter(Vehicle.id == vehicle_id).first()
+        if not vehicle:
+            raise HTTPException(status_code=404, detail="Vehicle not found")
+        return vehicle
+    except HTTPException:
+        raise
+    except Exception as e:
+        print("Error fetching vehicle details:", e)
         raise HTTPException(status_code=404, detail="Vehicle not found")
-    return vehicle
