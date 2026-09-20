@@ -5,16 +5,16 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 if current_dir not in sys.path:
     sys.path.insert(0, current_dir)
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from app.api.routes import auth, admin_vehicles, vehicles, bookings, admin_bookings, payments, office, reviews
 from app.database import engine, Base, SessionLocal
-from app.models.user import User
-from app.models.vehicle import Vehicle, VehicleImage
+from app.models import User, Vehicle, VehicleImage, Booking, Payment, Office, Review
 from app.core.security import get_password_hash
 from app.config import settings
 
-# Create database tables
+# Create database tables for all registered models
 Base.metadata.create_all(bind=engine)
 
 def auto_migrate():
@@ -409,17 +409,21 @@ def auto_seed_vehicles():
                     "security_deposit": 1000,
                     "image": "/uploads/burgman.jpg"
                 }
-            ]
-            for v_item in vehicles_data:
-                v_id = v_item["id"]
-                existing = db.query(Vehicle).filter(Vehicle.id == v_id).first()
-                if not existing:
-                    img_url = v_item.pop("image")
-                    veh = Vehicle(**v_item, status="AVAILABLE")
-                    db.add(veh)
-                    db.flush()
-                    db.add(VehicleImage(vehicle_id=veh.id, image_url=img_url, is_primary=True))
-            db.commit()
+        ]
+        for v_item in vehicles_data:
+            v_dict = dict(v_item)
+            v_id = v_dict["id"]
+            existing = db.query(Vehicle).filter(Vehicle.id == v_id).first()
+            if not existing:
+                img_url = v_dict.pop("image", "/logo.png")
+                veh = Vehicle(**v_dict, status="AVAILABLE")
+                db.add(veh)
+                db.flush()
+                db.add(VehicleImage(vehicle_id=veh.id, image_url=img_url, is_primary=True))
+            elif not existing.images:
+                img_url = v_dict.get("image", "/logo.png")
+                db.add(VehicleImage(vehicle_id=existing.id, image_url=img_url, is_primary=True))
+        db.commit()
     except Exception as e:
         print("Vehicle seed error:", e)
     finally:
@@ -436,6 +440,16 @@ app = FastAPI(
     description="API for Vehicle Rental Management Platform",
     version="1.0.0"
 )
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    print(f"Global exception on {request.method} {request.url}: {exc}")
+    import traceback
+    traceback.print_exc()
+    return JSONResponse(
+        status_code=500,
+        content={"detail": str(exc), "type": type(exc).__name__, "path": str(request.url)}
+    )
 
 app.add_middleware(
     CORSMiddleware,

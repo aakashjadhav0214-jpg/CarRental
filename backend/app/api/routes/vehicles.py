@@ -7,6 +7,7 @@ from ...schemas.vehicle import VehicleResponse
 
 router = APIRouter()
 
+@router.get("", response_model=List[VehicleResponse])
 @router.get("/", response_model=List[VehicleResponse])
 def get_vehicles(
     category: Optional[str] = None,

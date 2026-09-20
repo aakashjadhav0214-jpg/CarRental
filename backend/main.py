@@ -2,11 +2,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes import auth, admin_vehicles, vehicles, bookings, admin_bookings, payments, office, reviews
 from app.database import engine, Base, SessionLocal
-from app.models.user import User
+from app.models import User, Vehicle, VehicleImage, Booking, Payment, Office, Review
 from app.core.security import get_password_hash
 from app.config import settings
 
-# Create database tables
+# Create database tables for all registered models
 Base.metadata.create_all(bind=engine)
 
 def auto_migrate():

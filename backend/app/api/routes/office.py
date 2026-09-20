@@ -30,6 +30,7 @@ def get_or_create_office(db: Session) -> Office:
         db.refresh(office)
     return office
 
+@router.get("", response_model=OfficeResponse)
 @router.get("/", response_model=OfficeResponse)
 def get_office(db: Session = Depends(deps.get_db)):
     return get_or_create_office(db)
