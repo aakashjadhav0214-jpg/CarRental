@@ -14,8 +14,7 @@ from app.models import User, Vehicle, VehicleImage, Booking, Payment, Office, Re
 from app.core.security import get_password_hash
 from app.config import settings
 
-# Create database tables for all registered models
-Base.metadata.create_all(bind=engine)
+_db_initialized = False
 
 def auto_migrate():
     from sqlalchemy import text
@@ -32,11 +31,6 @@ def auto_migrate():
                 conn.commit()
             except Exception:
                 pass
-
-try:
-    auto_migrate()
-except Exception as e:
-    print("Auto-migrate error:", e)
 
 def create_initial_admin():
     db = SessionLocal()
@@ -429,17 +423,36 @@ def auto_seed_vehicles():
     finally:
         db.close()
 
-try:
-    create_initial_admin()
-    auto_seed_vehicles()
-except Exception as e:
-    print("Startup seed error:", e)
+def init_db_once():
+    global _db_initialized
+    if _db_initialized:
+        return
+    try:
+        Base.metadata.create_all(bind=engine)
+        auto_migrate()
+        create_initial_admin()
+        auto_seed_vehicles()
+    except Exception as e:
+        print("DB init error:", e)
+    finally:
+        _db_initialized = True
 
 app = FastAPI(
     title="Vehicle Rental API",
     description="API for Vehicle Rental Management Platform",
     version="1.0.0"
 )
+
+@app.on_event("startup")
+def on_startup():
+    init_db_once()
+
+@app.middleware("http")
+async def ensure_db_initialized(request: Request, call_next):
+    if not _db_initialized:
+        init_db_once()
+    response = await call_next(request)
+    return response
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
