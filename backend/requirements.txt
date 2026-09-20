@@ -6,6 +6,7 @@ pydantic-settings
 email-validator
 python-jose[cryptography]
 passlib[bcrypt]
+bcrypt==3.2.2
 python-multipart
 razorpay
 psycopg2-binary
