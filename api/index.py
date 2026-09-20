@@ -12,16 +12,30 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+app = FastAPI(
+    title="Vehicle Rental API",
+    description="API for Vehicle Rental Management Platform",
+    version="1.0.0"
+)
+
 IMPORT_ERROR = None
 try:
-    from app.api.routes import auth, admin_vehicles, vehicles, bookings, admin_bookings, payments, office, reviews
-    from app.database import engine, Base, SessionLocal
-    from app.models import User, Vehicle, VehicleImage, Booking, Payment, Office, Review
-    from app.core.security import get_password_hash
-    from app.config import settings
+    try:
+        from app.api.routes import auth, admin_vehicles, vehicles, bookings, admin_bookings, payments, office, reviews
+        from app.database import engine, Base, SessionLocal
+        from app.models import User, Vehicle, VehicleImage, Booking, Payment, Office, Review
+        from app.core.security import get_password_hash
+        from app.config import settings
+    except ModuleNotFoundError:
+        from api.app.api.routes import auth, admin_vehicles, vehicles, bookings, admin_bookings, payments, office, reviews
+        from api.app.database import engine, Base, SessionLocal
+        from api.app.models import User, Vehicle, VehicleImage, Booking, Payment, Office, Review
+        from api.app.core.security import get_password_hash
+        from api.app.config import settings
 except Exception as _err:
     import traceback
     IMPORT_ERROR = f"{type(_err).__name__}: {_err}\n{traceback.format_exc()}"
+
 
 _db_initialized = False
 
@@ -446,13 +460,8 @@ def init_db_once():
     finally:
         _db_initialized = True
 
-app = FastAPI(
-    title="Vehicle Rental API",
-    description="API for Vehicle Rental Management Platform",
-    version="1.0.0"
-)
-
 @app.on_event("startup")
+
 def on_startup():
     init_db_once()
 
