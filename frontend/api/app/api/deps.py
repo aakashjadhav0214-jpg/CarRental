@@ -8,7 +8,7 @@ from ..config import settings
 from ..models.user import User
 from ..schemas.user import TokenData
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login", auto_error=False)
 
 def get_db() -> Generator:
     try:
@@ -23,6 +23,9 @@ def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth2_
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+    if not token:
+        raise credentials_exception
+
     try:
         payload = jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
         email: str = payload.get("sub")
@@ -32,9 +35,26 @@ def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth2_
     except JWTError:
         raise credentials_exception
         
-    user = db.query(User).filter(User.email == token_data.email).first()
+    user = db.query(User).filter(User.email.ilike(token_data.email)).first()
     if user is None:
-        raise credentials_exception
+        role = payload.get("role", "USER")
+        if token_data.email.lower() == settings.ADMIN_EMAIL.lower():
+            role = "ADMIN"
+        try:
+            user = User(
+                name=token_data.email.split("@")[0].capitalize(),
+                email=token_data.email.lower(),
+                phone="7259857486" if role == "ADMIN" else "9999999999",
+                password_hash="",
+                role=role
+            )
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+        except Exception:
+            db.rollback()
+            raise credentials_exception
+
     return user
 
 def get_current_admin_user(current_user: User = Depends(get_current_user)) -> User:
