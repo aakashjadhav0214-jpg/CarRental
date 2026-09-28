@@ -535,11 +535,9 @@ def health_check():
 def health_check_short():
     return {"status": "ok"}
 
-try:
-    from a2wsgi import ASGIMiddleware
-    app = ASGIMiddleware(app)
-except Exception:
-    app = app
+# Export FastAPI app for Vercel
+app = app
+
 
 
 
