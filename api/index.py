@@ -535,7 +535,11 @@ def health_check():
 def health_check_short():
     return {"status": "ok"}
 
-# Export FastAPI app for Vercel Serverless Function
-app = app
+try:
+    from a2wsgi import ASGIMiddleware
+    app = ASGIMiddleware(app)
+except Exception:
+    app = app
+
 
 
