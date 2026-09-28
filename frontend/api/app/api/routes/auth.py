@@ -101,49 +101,60 @@ async def login(
             detail="Email/Phone and password are required."
         )
 
-    clean_input = email_or_phone.strip()
+    clean_input = str(email_or_phone).strip()
+    clean_password = str(password).strip()
     raw_phone = clean_input.replace("+91", "").replace(" ", "").replace("-", "").strip()
 
-    user = None
-    try:
-        user = db.query(User).filter(
-            or_(
-                User.email.ilike(clean_input),
-                User.phone == clean_input,
-                User.phone == raw_phone,
-                User.phone == f"+91{raw_phone}"
-            )
-        ).first()
-    except Exception as e:
-        print("DB error on login lookup:", e)
+    is_admin = clean_input.lower() in [settings.ADMIN_EMAIL.lower(), "admin@skr.com", "admin"]
+    valid_admin_pass = clean_password in [settings.ADMIN_PASSWORD.strip(), "ShriKrishna@2026!"]
 
-    # Master admin fallback handler
-    isAdminAttempt = (clean_input.lower() in [settings.ADMIN_EMAIL.lower(), "admin@skr.com", "admin"]) and (password in [settings.ADMIN_PASSWORD, "ShriKrishna@2026!"])
-    if isAdminAttempt:
+    user = None
+    if is_admin and valid_admin_pass:
         try:
-            if not user:
-                user = db.query(User).filter(User.role == "ADMIN").first()
-            if not user:
-                user = User(
+            admin_user = db.query(User).filter(
+                or_(
+                    User.email.ilike(settings.ADMIN_EMAIL),
+                    User.email.ilike("admin@skr.com"),
+                    User.role == "ADMIN"
+                )
+            ).first()
+
+            if not admin_user:
+                admin_user = User(
                     id="admin-single-id-001",
                     name="Shri Krishna Admin",
                     email="admin@skr.com",
                     phone="7259857486",
-                    password_hash=get_password_hash("ShriKrishna@2026!"),
+                    password_hash=get_password_hash(clean_password),
                     role="ADMIN",
                     created_at=datetime.utcnow()
                 )
-                db.add(user)
+                db.add(admin_user)
             else:
-                user.email = "admin@skr.com"
-                user.password_hash = get_password_hash("ShriKrishna@2026!")
-                user.role = "ADMIN"
+                admin_user.email = "admin@skr.com"
+                admin_user.password_hash = get_password_hash(clean_password)
+                admin_user.role = "ADMIN"
+            
             db.commit()
-            db.refresh(user)
+            db.refresh(admin_user)
+            user = admin_user
         except Exception as err:
             print("Master admin sync error:", err)
 
-    if not user or not verify_password(password, user.password_hash):
+    if not user:
+        try:
+            user = db.query(User).filter(
+                or_(
+                    User.email.ilike(clean_input),
+                    User.phone == clean_input,
+                    User.phone == raw_phone,
+                    User.phone == f"+91{raw_phone}"
+                )
+            ).first()
+        except Exception as e:
+            print("DB error on login lookup:", e)
+
+    if not user or not verify_password(clean_password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email, phone number, or password.",
