@@ -21,6 +21,7 @@ async def upload_image(file: UploadFile = File(...), current_admin = Depends(dep
         
     return {"url": f"/uploads/{filename}"}
 
+@router.post("", response_model=VehicleResponse, status_code=status.HTTP_201_CREATED)
 @router.post("/", response_model=VehicleResponse, status_code=status.HTTP_201_CREATED)
 def create_vehicle(
     vehicle_in: VehicleCreate,

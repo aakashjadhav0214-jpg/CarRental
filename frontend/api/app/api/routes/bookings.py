@@ -78,6 +78,7 @@ def check_availability(check: AvailabilityCheck, vehicle_id: str, db: Session = 
         pricing=pricing
     )
 
+@router.post("", response_model=BookingResponse, status_code=status.HTTP_201_CREATED)
 @router.post("/", response_model=BookingResponse, status_code=status.HTTP_201_CREATED)
 def create_booking(
     booking_in: BookingCreate, 

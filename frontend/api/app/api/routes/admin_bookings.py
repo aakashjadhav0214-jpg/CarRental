@@ -7,6 +7,7 @@ from ...schemas.booking import BookingResponse, BookingStatusUpdate
 
 router = APIRouter()
 
+@router.get("", response_model=List[BookingResponse])
 @router.get("/", response_model=List[BookingResponse])
 def get_all_bookings(
     status: Optional[str] = None,

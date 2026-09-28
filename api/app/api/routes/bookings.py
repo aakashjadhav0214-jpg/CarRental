@@ -90,6 +90,7 @@ def check_availability(
         pricing=pricing
     )
 
+@router.post("", response_model=BookingResponse, status_code=status.HTTP_201_CREATED)
 @router.post("/", response_model=BookingResponse, status_code=status.HTTP_201_CREATED)
 def create_booking(
     booking_in: BookingCreate, 

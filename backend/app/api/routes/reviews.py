@@ -13,6 +13,7 @@ from ..deps import get_db, get_current_user, get_current_admin_user
 router = APIRouter(prefix="/reviews", tags=["Reviews & Feedback"])
 
 @router.post("", response_model=ReviewOut)
+@router.post("/", response_model=ReviewOut)
 def create_review(
     review_in: ReviewCreate,
     current_user: User = Depends(get_current_user),
