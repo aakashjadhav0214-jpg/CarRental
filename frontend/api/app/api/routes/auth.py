@@ -117,20 +117,25 @@ async def login(
     except Exception as e:
         print("DB error on login lookup:", e)
 
-    # Auto-heal admin user if logging in as configured admin email
-    if not user and clean_input.lower() == settings.ADMIN_EMAIL.lower():
+    # Auto-heal admin user if logging in with configured admin email and password
+    if clean_input.lower() == settings.ADMIN_EMAIL.lower() and password == settings.ADMIN_PASSWORD:
         try:
-            user = User(
-                name="Shri Krishna Admin",
-                email=settings.ADMIN_EMAIL.lower(),
-                phone="7259857486",
-                password_hash=get_password_hash(settings.ADMIN_PASSWORD),
-                role="ADMIN",
-                created_at=datetime.utcnow()
-            )
-            db.add(user)
-            db.commit()
-            db.refresh(user)
+            if not user:
+                user = User(
+                    name="Shri Krishna Admin",
+                    email=settings.ADMIN_EMAIL.lower(),
+                    phone="7259857486",
+                    password_hash=get_password_hash(settings.ADMIN_PASSWORD),
+                    role="ADMIN",
+                    created_at=datetime.utcnow()
+                )
+                db.add(user)
+                db.commit()
+                db.refresh(user)
+            else:
+                user.password_hash = get_password_hash(settings.ADMIN_PASSWORD)
+                user.role = "ADMIN"
+                db.commit()
         except Exception as err:
             print("Auto-heal admin error:", err)
 
