@@ -346,17 +346,24 @@ def auto_seed_vehicles():
                 }
             ]
             for v_item in vehicles_data:
-                img_url = v_item.pop("image")
-                veh = Vehicle(**v_item, status="AVAILABLE")
+                v_dict = dict(v_item)
+                img_url = v_dict.pop("image", "/logo.png")
+                veh = Vehicle(**v_dict, status="AVAILABLE")
                 db.add(veh)
                 db.flush()
                 db.add(VehicleImage(vehicle_id=veh.id, image_url=img_url, is_primary=True))
             db.commit()
+    except Exception as e:
+        print("Vehicle seeding error:", e)
     finally:
         db.close()
 
-create_initial_admin()
-auto_seed_vehicles()
+try:
+    create_initial_admin()
+    auto_seed_vehicles()
+except Exception as err:
+    print("Top level init error:", err)
+
 
 app = FastAPI(
     title="Vehicle Rental API",
