@@ -9,6 +9,6 @@ passlib[bcrypt]
 python-multipart
 razorpay
 python-dotenv
-mangum
 psycopg2-binary
+
 

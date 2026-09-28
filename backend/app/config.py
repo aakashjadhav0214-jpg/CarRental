@@ -2,9 +2,14 @@ from pydantic_settings import BaseSettings
 from typing import Optional
 import os
 
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BACKEND_DB_FILE = os.path.join(BASE_DIR, "rental.db")
+
 class Settings(BaseSettings):
     PROJECT_NAME: str = "Vehicle Rental API"
-    DATABASE_URL: str = os.getenv("DATABASE_URL") or ("sqlite:////tmp/rental.db" if os.getenv("VERCEL") else "sqlite:///./rental.db")
+    DATABASE_URL: str = os.getenv("DATABASE_URL") or (
+        "sqlite:////tmp/rental.db" if os.getenv("VERCEL") else f"sqlite:///{BACKEND_DB_FILE}"
+    )
     
     JWT_SECRET: str = os.getenv("JWT_SECRET", "your_super_secret_jwt_key_here_please_change_in_production")
     JWT_ALGORITHM: str = "HS256"
@@ -23,5 +28,9 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
+if settings.DATABASE_URL == "sqlite:///./rental.db":
+    settings.DATABASE_URL = f"sqlite:///{BACKEND_DB_FILE}"
+
 if settings.DATABASE_URL and settings.DATABASE_URL.startswith("postgres://"):
     settings.DATABASE_URL = settings.DATABASE_URL.replace("postgres://", "postgresql://", 1)
+

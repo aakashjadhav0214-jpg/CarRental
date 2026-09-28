@@ -535,9 +535,7 @@ def health_check():
 def health_check_short():
     return {"status": "ok"}
 
-try:
-    from mangum import Mangum
-    handler = Mangum(app, lifespan="off")
-except Exception:
-    handler = app
+# Export FastAPI app for Vercel Serverless Function
+app = app
+
 
